@@ -40,7 +40,7 @@
 	"readme": "README.md",
 	"autoload": {
 		"files": [
-			"includes/core/class-autoloader.php"
+			"includes/core/Autoloader.php"
 		],
 		"psr-4": {
 			"CodeSoup\\ACFAdminCategories\\Core\\": "includes/core/",

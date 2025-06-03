@@ -12,7 +12,11 @@ if (file_exists($autoload_file)) {
 }
 
 // Load our custom WordPress-compatible PSR-4 autoloader
-require_once "includes/core/class-autoloader.php";
+require_once "includes/core/Autoloader.php";
+
+// Register the autoloader
+$autoloader = new \CodeSoup\ACFAdminCategories\Core\Autoloader();
+$autoloader->register();
 
 /**
  * Make main plugin class available via global function call.

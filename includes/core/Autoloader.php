@@ -1,5 +1,7 @@
 <?php declare( strict_types=1 );
 
+namespace CodeSoup\ACFAdminCategories\Core;
+
 // Exit if accessed directly
 defined( 'ABSPATH' ) || exit;
 
@@ -11,7 +13,7 @@ defined( 'ABSPATH' ) || exit;
  *
  * @since 1.0.0
  */
-class ACFAdminCategories_Autoloader {
+class Autoloader {
 
 	/**
 	 * Namespace to directory mappings
@@ -339,7 +341,7 @@ class ACFAdminCategories_Autoloader {
 
 // Initialize and register the autoloader
 if ( ! isset( $GLOBALS['codesoup_aac_autoloader'] ) ) {
-	$codesoup_aac_autoloader = new ACFAdminCategories_Autoloader();
+	$codesoup_aac_autoloader = new Autoloader();
 	$codesoup_aac_autoloader->register();
 
 	// Store globally for potential unregistration
