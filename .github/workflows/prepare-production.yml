@@ -2,7 +2,7 @@
 name: Prepare Production Release
 
 on:
-  workflow_dispatch:  # Manual trigger only
+  workflow_dispatch:
 
 jobs:
   prepare-production:
@@ -34,18 +34,40 @@ jobs:
       - name: Install production PHP dependencies
         run: composer install --no-dev --optimize-autoloader --no-interaction
 
+      - name: Remove dist from gitignore
+        run: |
+          if [ -f .gitignore ]; then
+            sed -i '/^dist\//d' .gitignore
+            sed -i '/^dist$/d' .gitignore
+          fi
+
+      - name: Remove development files and directories
+        run: |
+          rm -rf src/
+          rm -f .editorconfig
+          rm -f .eslintrc
+          rm -f .gitattributes
+          rm -f .gitignore
+          rm -f .stylelintrc
+          rm -f CHANGELOG.md
+          rm -f CONTRIBUTING.md
+          rm -f composer.json
+          rm -f package.json
+          rm -f phpcs.xml.dist
+          rm -f yarn.lock
+          rm -rf node_modules/
+
       - name: Setup Git
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Commit built assets and dependencies
+      - name: Stage all changes including dist
         run: |
           git add .
-          git commit -m "Build production assets and update dependencies" || echo "No changes to commit"
+          git add dist/ --force  # Force add dist directory
+          git commit -m "Production build: remove dev files, include dist assets"
 
-      - name: Promote to master
+      - name: Force push to master
         run: |
-          git checkout master
-          git merge develop --no-ff -m "Prepare production release from develop"
-          git push origin master
+          git push origin HEAD:master --force
