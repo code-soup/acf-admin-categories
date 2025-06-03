@@ -51,8 +51,6 @@ jobs:
           rm -f .stylelintrc
           rm -f CHANGELOG.md
           rm -f CONTRIBUTING.md
-          rm -f composer.json
-          rm -f package.json
           rm -f phpcs.xml.dist
           rm -f yarn.lock
           rm -rf node_modules/
