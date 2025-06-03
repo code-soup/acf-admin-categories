@@ -1,0 +1,141 @@
+{
+	"name": "codesoup/acf-admin-categories",
+	"description": "A WordPress plugin that adds category organization to Advanced Custom Fields (ACF) field groups for better management and organization.",
+	"homepage": "https://github.com/code-soup/acf-admin-categories",
+	"type": "wordpress-plugin",
+	"license": "GPL-3.0-or-later",
+	"minimum-stability": "stable",
+	"prefer-stable": true,
+	"support": {
+		"issues": "https://github.com/code-soup/acf-admin-categories/issues",
+		"source": "https://github.com/code-soup/acf-admin-categories",
+		"docs": "https://github.com/code-soup/acf-admin-categories#readme"
+	},
+	"authors": [
+		{
+			"name": "Vlado Bosnjak",
+			"email": "vb@bobz.co",
+			"homepage": "https://www.bobz.co",
+			"role": "Developer"
+		},
+		{
+			"name": "Code Soup",
+			"email": "hi@codesoup.co",
+			"homepage": "https://www.codesoup.co",
+			"role": "Organization"
+		}
+	],
+	"keywords": [
+		"wordpress",
+		"wordpress-plugin",
+		"acf",
+		"advanced-custom-fields",
+		"categories",
+		"taxonomy",
+		"organization",
+		"field-groups",
+		"admin",
+		"management"
+	],
+	"readme": "README.md",
+	"autoload": {
+		"files": [
+			"includes/core/class-autoloader.php"
+		],
+		"psr-4": {
+			"CodeSoup\\ACFAdminCategories\\Core\\": "includes/core/",
+			"CodeSoup\\ACFAdminCategories\\Admin\\": "includes/admin/",
+			"CodeSoup\\ACFAdminCategories\\Frontend\\": "includes/frontend/",
+			"CodeSoup\\ACFAdminCategories\\Providers\\": "includes/providers/",
+			"CodeSoup\\ACFAdminCategories\\Abstracts\\": "includes/abstracts/",
+			"CodeSoup\\ACFAdminCategories\\Interfaces\\": "includes/interfaces/",
+			"CodeSoup\\ACFAdminCategories\\Traits\\": "includes/traits/",
+			"CodeSoup\\ACFAdminCategories\\": "includes/"
+		}
+	},
+	"require": {
+		"php": ">=8.0",
+		"composer/installers": "^2.3.0"
+	},
+	"require-dev": {
+		"wp-coding-standards/wpcs": "^3.1",
+		"phpcompatibility/phpcompatibility-wp": "^2.1",
+		"dealerdirect/phpcodesniffer-composer-installer": "^1.0",
+		"php-parallel-lint/php-parallel-lint": "^1.3",
+		"php-parallel-lint/php-console-highlighter": "^1.0"
+	},
+	"suggest": {
+		"advanced-custom-fields/advanced-custom-fields-pro": "Required for full ACF functionality and integration."
+	},
+	"config": {
+		"allow-plugins": {
+			"dealerdirect/phpcodesniffer-composer-installer": true,
+			"composer/installers": true
+		},
+		"optimize-autoloader": true,
+		"sort-packages": true,
+		"platform": {
+			"php": "8.0"
+		}
+	},
+	"scripts": {
+		"install-codestandards": [
+			"Dealerdirect\\Composer\\Plugin\\Installers\\PHPCodeSniffer\\Plugin::run"
+		],
+		"phpcs": [
+			"@php ./vendor/bin/phpcs --standard=phpcs.xml.dist --report=full"
+		],
+		"phpcbf": [
+			"@php ./vendor/bin/phpcbf --standard=phpcs.xml.dist"
+		],
+		"lint": [
+			"@php ./vendor/bin/parallel-lint . -e php --show-deprecated --exclude vendor --exclude .git --exclude node_modules"
+		],
+		"ci": [
+			"@lint",
+			"@phpcs"
+		]
+	},
+	"extra": {
+		"installer-paths": {
+			"wp-content/plugins/{$name}/": [
+				"type:wordpress-plugin"
+			],
+			"wp-content/mu-plugins/{$name}/": [
+				"type:wordpress-muplugin"
+			],
+			"wp-content/themes/{$name}/": [
+				"type:wordpress-theme"
+			]
+		},
+		"scripts-description": {
+			"phpcs": "Analyze code against the WordPress coding standards with PHP_CodeSniffer",
+			"phpcbf": "Fix coding standards warnings/errors automatically with PHP Code Beautifier",
+			"lint": "Lint PHP files against parse errors",
+			"ci": "Run continuous integration checks (lint, phpcs)"
+		},
+		"branch-alias": {
+			"dev-main": "0.1.x-dev"
+		}
+	},
+	"archive": {
+		"exclude": [
+			"/.git",
+			"/.github",
+			"/.gitignore",
+			"/.gitattributes",
+			"/phpcs.xml.dist",
+			"/.editorconfig",
+			"/.eslintrc",
+			"/.stylelintrc",
+			"/package.json",
+			"/yarn.lock",
+			"/node_modules",
+			"/src",
+			"/dist/*.map",
+			"/webpack.config.js",
+			"/.env*",
+			"/composer.lock"
+		]
+	}
+}
