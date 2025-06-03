@@ -2,10 +2,7 @@
 name: Prepare Production Release
 
 on:
-  push:
-    branches:
-      - develop
-  workflow_dispatch:
+  workflow_dispatch:  # Manual trigger only
 
 jobs:
   prepare-production:
@@ -21,7 +18,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20.19.2"
-          cache: "yarn"
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -30,7 +26,7 @@ jobs:
           tools: composer
 
       - name: Install yarn dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install
 
       - name: Build production assets
         run: yarn build:prod
