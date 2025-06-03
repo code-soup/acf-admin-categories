@@ -38,7 +38,7 @@ defined('WPINC') || die;
  * along with ACF Admin Categories. If not, see https://www.gnu.org/licenses/gpl-3.0.html.
  */
 
-register_activation_hook( __FILE__, function() {
+ register_activation_hook( __FILE__, function() {
     // On activate do this
     \CodeSoup\ACFAdminCategories\Core\Activator::activate();
 });

@@ -46,6 +46,20 @@ ACF Admin Categories extends the Advanced Custom Fields plugin by adding a custo
 composer require codesoup/acf-admin-categories
 ```
 
+**Note**: When installing via Composer, you need to manually include the plugin in your project:
+
+```php
+// Add this to your project's bootstrap file or wp-config.php
+require_once __DIR__ . '/vendor/codesoup/acf-admin-categories/index.php';
+```
+
+Or if using WordPress with Composer in the traditional structure:
+
+```php
+// Add this to your mu-plugins or theme's functions.php
+require_once ABSPATH . 'vendor/codesoup/acf-admin-categories/index.php';
+```
+
 ### Manual Installation
 
 1. Download the plugin files
