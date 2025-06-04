@@ -54,6 +54,7 @@ jobs:
           rm -f phpcs.xml.dist
           rm -f yarn.lock
           rm -rf node_modules/
+          rm -rf screenshots/
 
       - name: Setup Git
         run: |

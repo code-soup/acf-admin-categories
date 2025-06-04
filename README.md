@@ -49,13 +49,6 @@ composer require codesoup/acf-admin-categories
 **Note**: When installing via Composer, you need to manually include the plugin in your project:
 
 ```php
-// Add this to your project's bootstrap file or wp-config.php
-require_once __DIR__ . '/vendor/codesoup/acf-admin-categories/index.php';
-```
-
-Or if using WordPress with Composer in the traditional structure:
-
-```php
 // Add this to your mu-plugins or theme's functions.php
 require_once ABSPATH . 'vendor/codesoup/acf-admin-categories/index.php';
 ```
@@ -91,15 +84,29 @@ require_once ABSPATH . 'vendor/codesoup/acf-admin-categories/index.php';
 ### Managing Categories
 
 - **Edit Categories**: Go to **Custom Fields > Field Categories** to edit existing categories
-- **Hierarchical Structure**: Create parent/child relationships between categories
-- **Bulk Management**: Use WordPress's built-in bulk actions for category management
 
 ## Screenshots
 
-1. **Field Group Categories Management** - Create and manage your field group categories
-2. **Category Assignment Interface** - Assign categories directly from field group settings
-3. **Filtered Field Groups List** - Filter and view field groups by category
-4. **Category Column** - See assigned categories at a glance
+### 1. Field Groups with Categories
+
+
+![Field Groups with Categories](https://raw.githubusercontent.com/code-soup/acf-admin-categories/develop/screenshots/screenshot-01.png)
+
+### 2. Category Assignment UI  
+Assign categories from field group settings.
+
+![Category Assignment UI](https://raw.githubusercontent.com/code-soup/acf-admin-categories/develop/screenshots/screenshot-02.png)
+
+### 3. Admin Menu
+Access categories management from ACF admin menu
+
+![Admin Menu](https://raw.githubusercontent.com/code-soup/acf-admin-categories/develop/screenshots/screenshot-03.png)
+
+### 4. Manage Field Group Categories
+Create and manage field group categories in usual WordPress way
+
+![Manage Field Group Categories](https://raw.githubusercontent.com/code-soup/acf-admin-categories/develop/screenshots/screenshot-04.png)
+
 
 ## Frequently Asked Questions
 
@@ -115,19 +122,11 @@ No, existing field groups will continue to work normally. Categories are optiona
 
 Yes, field groups can be assigned to multiple categories for flexible organization.
 
-### Are categories hierarchical?
-
-Yes, you can create parent/child category relationships for better organization.
-
-### Does this plugin affect frontend performance?
-
-No, categories are only used in the WordPress admin area and don't affect frontend performance.
-
 ## Development
 
 ### Requirements
 
-- Node.js >= 20
+- Node.js >= 20.19.2
 - Composer
 - Yarn or npm
 
@@ -190,8 +189,7 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 
 ## Support
 
-Please use [GitHub Issues](https://github.com/code-soup/acf-admin-categories/issues) to submit any bugs or feature requests. 
-- **Issues**: [GitHub Issues](https://github.com/code-soup/acf-admin-categories/issues)
+Please use [GitHub Issues](https://github.com/code-soup/acf-admin-categories/issues) to submit any bugs or feature requests.
 
 ## License
 
