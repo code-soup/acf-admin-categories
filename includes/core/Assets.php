@@ -1,6 +1,4 @@
-<?php
-
-declare(strict_types=1);
+<?php declare( strict_types=1 );
 
 namespace CodeSoup\ACFAdminCategories\Core;
 
@@ -19,7 +17,6 @@ class Assets implements AssetsInterface {
 
 	use \CodeSoup\ACFAdminCategories\Traits\HelpersTrait;
 
-
 	/**
 	 * Manifest file object containing list of all hashed assets
 	 *
@@ -27,7 +24,6 @@ class Assets implements AssetsInterface {
 	 * @since 1.0.0
 	 */
 	private array $manifest = array();
-
 
 	/**
 	 * URI to theme 'dist' folder
@@ -37,7 +33,6 @@ class Assets implements AssetsInterface {
 	 */
 	private string $dist_uri;
 
-
 	/**
 	 * Initiate
 	 *
@@ -45,7 +40,7 @@ class Assets implements AssetsInterface {
 	 * @throws \RuntimeException If manifest cannot be loaded.
 	 */
 	public function __construct() {
-		$this->dist_uri = $this->get_plugin_dir_url( '/dist' );
+		$this->dist_uri = $this->get_plugin_dir_url( 'dist' );
 		$this->load_manifest();
 	}
 
@@ -58,15 +53,14 @@ class Assets implements AssetsInterface {
 	 */
 	private function load_manifest(): void {
 		// Try to get cached manifest first
-		$cache_key       = 'codesoup_aac_assets_manifest';
+		$cache_key       = $this->get_constant( 'PLUGIN_NAME' ) . $this->get_constant( 'PLUGIN_VERSION' );
 		$cached_manifest = get_transient( $cache_key );
+		$manifest_path   = $this->get_plugin_dir_path( 'dist/manifest.json' );
 
 		if ( false !== $cached_manifest && is_array( $cached_manifest ) ) {
 			$this->manifest = $cached_manifest;
 			return;
 		}
-
-		$manifest_path = $this->get_plugin_dir_path( '/dist/assets.json' );
 
 		// Check if manifest file exists
 		if ( ! file_exists( $manifest_path ) ) {
@@ -93,7 +87,6 @@ class Assets implements AssetsInterface {
 		set_transient( $cache_key, $this->manifest, HOUR_IN_SECONDS );
 	}
 
-
 	/**
 	 * Get full URI to single asset
 	 *
@@ -102,11 +95,8 @@ class Assets implements AssetsInterface {
 	 * @return string           URI to resource
 	 */
 	public function get( string $filename = '' ): string {
-
 		return $this->locate( $filename );
 	}
-
-
 
 	/**
 	 * Fix URL for requested files
@@ -117,26 +107,23 @@ class Assets implements AssetsInterface {
 	 */
 	private function locate( string $filename = '' ): string {
 
-		// Trim slashes just in case.
-		$filename = rtrim( $filename, '/' );
-		$filename = ltrim( $filename, '/' );
-
+		error_log( print_r( $this->manifest, true ) );
 		// Return URL to requested file from manifest.
 		if ( array_key_exists( $filename, $this->manifest ) ) {
-			return sprintf( '%s/%s', $this->dist_uri, $this->manifest[ $filename ] );
+			return $this->join_path( $this->dist_uri, $this->manifest[ $filename ] );
 		}
 
 		switch ( pathinfo( $filename, PATHINFO_EXTENSION ) ) {
 			case 'js':
-				$filename = sprintf( 'scripts/%s', $filename );
+				$filename = $this->join_path( 'scripts', $filename );
 				break;
 
 			case 'css':
-				$filename = sprintf( 'styles/%s', $filename );
+				$filename = $this->join_path( 'styles', $filename );
 				break;
 		}
 
 		// Return default file location.
-		return sprintf( '%s/%s', $this->dist_uri, $filename );
+		return $this->join_path( $this->dist_uri, $filename );
 	}
 }

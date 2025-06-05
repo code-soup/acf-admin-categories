@@ -49,8 +49,16 @@ composer require codesoup/acf-admin-categories
 **Note**: When installing via Composer, you need to manually include the plugin in your project:
 
 ```php
-// Add this to your mu-plugins or theme's functions.php
-require_once ABSPATH . 'vendor/codesoup/acf-admin-categories/index.php';
+// Add this to your theme's functions.php
+add_filter( 'acf_admin_categories_plugin_dir_url', function( $base_url ) {
+
+    return sprintf(
+        '%s/vendor/acf-admin-categories',
+        get_stylesheet_directory_uri()
+    );
+});
+
+require_once __DIR__ . '/vendor/acf-admin-categories/index.php';
 ```
 
 ### Manual Installation

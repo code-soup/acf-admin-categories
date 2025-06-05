@@ -59,7 +59,14 @@ module.exports = (config, env) => {
         // Manifest plugin - only in production
         {
             condition: env.isProduction,
-            factory: () => new WebpackManifestPlugin()
+            factory: () => new WebpackManifestPlugin({
+                publicPath: '',
+                map: (file) => {
+                    // Remove the 'auto/' prefix if it exists
+                    file.path = file.path.replace(/^auto\//, '');
+                    return file;
+                }
+            })
         },
         
         // ESLint plugin - only when running lint commands

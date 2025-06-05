@@ -23,7 +23,6 @@ const publicPath =
     'undefined' === typeof process.env.WP_PUBLIC_PATH
         ? `${process.env.WP_CONTENT_PATH}/${pluginDirName}/dist/`
         : process.env.WP_PUBLIC_PATH;
-
 /**
  * Base configuration object
  */
