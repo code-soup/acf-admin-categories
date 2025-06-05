@@ -46,7 +46,7 @@ class Init {
 		$this->assets = $instance->get_assets();
 
 		// Admin hooks.
-		$hooker->add_action( 'admin_enqueue_scripts', $this );
+		// $hooker->add_action( 'admin_enqueue_scripts', $this );
 		
 		// Initialize ACF Setup
 		new \CodeSoup\ACFAdminCategories\Admin\ACF_Setup();

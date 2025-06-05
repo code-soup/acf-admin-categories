@@ -14,10 +14,10 @@ jobs:
           ref: develop
           fetch-depth: 0
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20.19.2"
+      # - name: Setup Node.js
+      #   uses: actions/setup-node@v4
+      #   with:
+      #     node-version: "20.19.2"
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -25,21 +25,21 @@ jobs:
           php-version: "8.1"
           tools: composer
 
-      - name: Install yarn dependencies
-        run: yarn install
+      # - name: Install yarn dependencies
+      #   run: yarn install
 
-      - name: Build production assets
-        run: yarn build:prod
+      # - name: Build production assets
+      #   run: yarn build:prod
 
       - name: Install production PHP dependencies
         run: composer install --no-dev --optimize-autoloader --no-interaction
 
-      - name: Remove dist from gitignore
-        run: |
-          if [ -f .gitignore ]; then
-            sed -i '/^dist\//d' .gitignore
-            sed -i '/^dist$/d' .gitignore
-          fi
+      # - name: Remove dist from gitignore
+      #   run: |
+      #     if [ -f .gitignore ]; then
+      #       sed -i '/^dist\//d' .gitignore
+      #       sed -i '/^dist$/d' .gitignore
+      #     fi
 
       - name: Remove development files and directories
         run: |
@@ -64,8 +64,7 @@ jobs:
       - name: Stage all changes including dist
         run: |
           git add .
-          git add dist/ --force  # Force add dist directory
-          git commit -m "Production build: remove dev files, include dist assets"
+          git commit -m "Production build: remove dev files"
 
       - name: Force push to master
         run: |

@@ -90,26 +90,28 @@ class ACF_Setup {
 		<div class="acf-field">
 			<div class="acf-label">
 				<label for="acf-field-categories"><?php _e( 'Field Categories', 'codesoup-acf-admin-categories' ); ?></label>
-				<p class="description"><?php _e( 'Assign this field group to one or more categories for better organization.', 'codesoup-acf-admin-categories' ); ?></p>
+				<i tabindex="0" class="acf-icon acf-icon-help acf-js-tooltip" title="<?php _e( 'Assign this field group to one or more categories for better organization.', 'codesoup-acf-admin-categories' ); ?>">?</i>
 			</div>
 			<div class="acf-input">
 				<?php if ( ! empty( $categories ) && ! is_wp_error( $categories ) ) : ?>
-					<div class="acf-checkbox-list">
+					<ul class="acf-checkbox-list">
 						<?php foreach ( $categories as $category ) : ?>
-							<label class="acf-checkbox-item">
-								<input 
-									type="checkbox" 
-									name="acf_field_categories[]" 
-									value="<?php echo esc_attr( $category->term_id ); ?>"
-									<?php checked( in_array( $category->term_id, $assigned_categories ) ); ?>
-								/>
-								<span><?php echo esc_html( $category->name ); ?></span>
-								<?php if ( ! empty( $category->description ) ) : ?>
-									<small class="description"><?php echo esc_html( $category->description ); ?></small>
-								<?php endif; ?>
-							</label>
+                            <li>
+                                <label class="acf-checkbox-item">
+                                    <input 
+                                        type="checkbox" 
+                                        name="acf_field_categories[]" 
+                                        value="<?php echo esc_attr( $category->term_id ); ?>"
+                                        <?php checked( in_array( $category->term_id, $assigned_categories ) ); ?>
+                                    />
+                                    <span><?php echo esc_html( $category->name ); ?></span>
+                                    <?php if ( ! empty( $category->description ) ) : ?>
+                                        <small class="description"><?php echo esc_html( $category->description ); ?></small>
+                                    <?php endif; ?>
+                                </label>
+                            </li>
 						<?php endforeach; ?>
-					</div>
+                    </ul>
 				<?php else : ?>
 					<p class="acf-no-categories">
 						<?php
@@ -473,4 +475,4 @@ class ACF_Setup {
 		$columns['category'] = 'category';
 		return $columns;
 	}
-} 
+}

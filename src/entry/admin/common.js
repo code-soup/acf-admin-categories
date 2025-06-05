@@ -1,5 +1,3 @@
 {
-	"entry": [
-		"styles/admin.scss"
-	]
+	"entry": []
 }
