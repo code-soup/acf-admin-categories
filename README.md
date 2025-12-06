@@ -73,12 +73,11 @@ composer require codesoup/acf-admin-categories
 
 ## Changelog
 
-### 0.0.1
+### 1.0.0
 - Initial release
 - Custom taxonomy for field group categories
 - Category assignment interface in ACF field groups
 - Category filtering and column display
-- Admin menu integration
 
 ## Support
 
