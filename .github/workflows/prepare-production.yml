@@ -41,8 +41,14 @@ jobs:
 
       - name: Commit built assets and dependencies
         run: |
-          git add .
+          git add -f dist
+          git add -f vendor
           git commit -m "Build production assets and update dependencies" || echo "No changes to commit"
+
+      - name: Remove src directory for production
+        run: |
+          git rm -rf src
+          git commit -m "Remove src directory for production" || echo "No src directory to remove"
 
       - name: Promote to master
         run: |
