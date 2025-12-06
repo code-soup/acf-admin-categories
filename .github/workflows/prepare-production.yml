@@ -57,6 +57,6 @@ jobs:
 
       - name: Remove development files from master
         run: |
-          git rm -f --ignore-unmatch .editorconfig .eslintrc .gitattributes .gitignore .phpcs.cache .stylelintrc composer.json package.json phpcs.xml.dist
+          git rm -f --ignore-unmatch .editorconfig .eslintrc .gitattributes .gitignore .phpcs.cache .stylelintrc package.json phpcs.xml.dist
           git commit -m "Remove development files from production" || echo "No development files to remove"
           git push origin master
