@@ -43,6 +43,7 @@ jobs:
         run: |
           git add -f dist
           git add -f vendor
+          git add -f composer.json
           git commit -m "Build production assets and update dependencies" || echo "No changes to commit"
 
       - name: Remove src directory for production
