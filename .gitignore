@@ -45,6 +45,7 @@ dwsync.xml
 intermediate
 .idea
 cache
+dist
 vendor
 bower_components
 node_modules
