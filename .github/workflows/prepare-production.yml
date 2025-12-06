@@ -50,14 +50,14 @@ jobs:
           git rm -rf src
           git commit -m "Remove src directory for production" || echo "No src directory to remove"
 
-      - name: Remove development files for production
-        run: |
-          git rm -rf .github/workflows
-          git rm -f .editorconfig .eslintrc .gitattributes .gitignore .phpcs.cache .stylelintrc composer.json package.json phpcs.xml.dist
-          git commit -m "Remove development files for production" || echo "No development files to remove"
-
       - name: Promote to master
         run: |
           git checkout master
           git merge develop --no-ff -m "Prepare production release from develop"
+
+      - name: Remove development files from master
+        run: |
+          git rm -rf .github
+          git rm -f .editorconfig .eslintrc .gitattributes .gitignore .phpcs.cache .stylelintrc composer.json package.json phpcs.xml.dist
+          git commit -m "Remove development files from production" || echo "No development files to remove"
           git push origin master
