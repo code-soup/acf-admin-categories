@@ -1,0 +1,62 @@
+# .github/workflows/prepare-production.yml
+name: Prepare Production Release
+
+on:
+  workflow_dispatch:  # Manual trigger only
+
+jobs:
+  prepare-production:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout develop branch
+        uses: actions/checkout@v3
+        with:
+          ref: develop
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.19.2"
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.1"
+          tools: composer
+
+      - name: Install yarn dependencies
+        run: yarn install
+
+      - name: Build production assets
+        run: yarn build:prod
+
+      - name: Install production PHP dependencies
+        run: composer install --no-dev --optimize-autoloader --no-interaction
+
+      - name: Setup Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Commit built assets and dependencies
+        run: |
+          git add -f dist
+          git add -f vendor
+          git commit -m "Build production assets and update dependencies" || echo "No changes to commit"
+
+      - name: Remove src directory for production
+        run: |
+          git rm -rf src
+          git commit -m "Remove src directory for production" || echo "No src directory to remove"
+
+      - name: Promote to master
+        run: |
+          git checkout master
+          git merge develop --no-ff -m "Prepare production release from develop"
+
+      - name: Remove development files from master
+        run: |
+          git rm -f .editorconfig .eslintrc .gitattributes .gitignore .phpcs.cache .stylelintrc composer.json package.json phpcs.xml.dist
+          git commit -m "Remove development files from production" || echo "No development files to remove"
+          git push origin master
