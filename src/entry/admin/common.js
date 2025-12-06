@@ -1,0 +1,5 @@
+{
+	"entry": [
+		"styles/admin.scss"
+	]
+}
