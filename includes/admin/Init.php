@@ -221,7 +221,10 @@ class Init {
 						<?php
 						printf(
 							/* translators: %s: URL to create categories */
-							esc_html__( 'No field categories found. <a href="%s">Create some categories</a> first.', 'codesoup-acf-admin-categories' ),
+							wp_kses(
+								__( 'No field categories found. <a href="%s">Create some categories</a> first.', 'codesoup-acf-admin-categories' ),
+								array( 'a' => array( 'href' => array() ) )
+							),
 							esc_url( admin_url( 'edit-tags.php?taxonomy=' . self::TAXONOMY_NAME ) )
 						);
 						?>

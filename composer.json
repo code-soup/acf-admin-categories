@@ -1,6 +1,5 @@
 {
 	"name": "codesoup/acf-admin-categories",
-	"version": "1.0.0",
 	"description": "A WordPress plugin that adds category organization to Advanced Custom Fields (ACF) field groups for better management and organization.",
 	"homepage": "https://github.com/code-soup/acf-admin-categories",
 	"type": "library",

@@ -46,6 +46,16 @@ trait HelpersTrait {
 		// Force baseurl to be plugin root directory.
 		$base = plugins_url( '/', dirname( __DIR__, 1 ) );
 
+		/**
+		 * Filter the plugin directory URL.
+		 *
+		 * Useful when the plugin is installed via Composer in a non-standard location.
+		 *
+		 * @since 1.0.0
+		 * @param string $base The default plugin directory URL.
+		 */
+		$base = apply_filters( 'codesoup_acf_admin_categories_plugin_dir_url', $base );
+
 		return $this->join_path( $base, $path, '/' );
 	}
 
