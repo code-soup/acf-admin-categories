@@ -59,7 +59,7 @@ module.exports = (config, env) => {
         // Manifest plugin - only in production
         {
             condition: env.isProduction,
-            factory: () => new WebpackManifestPlugin()
+            factory: () => new WebpackManifestPlugin({ publicPath: '' })
         },
         
         // ESLint plugin - only when running lint commands

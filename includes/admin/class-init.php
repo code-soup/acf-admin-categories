@@ -220,8 +220,8 @@ class Init {
 					<p class="acf-no-categories">
 						<?php
 						printf(
-							/* translators: %s: URL to create categories */
 							wp_kses(
+								/* translators: %s: URL to create categories */
 								__( 'No field categories found. <a href="%s">Create some categories</a> first.', 'codesoup-acf-admin-categories' ),
 								array( 'a' => array( 'href' => array() ) )
 							),

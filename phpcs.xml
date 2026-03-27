@@ -57,8 +57,6 @@
 
 	<rule ref="WordPress">
 		<exclude name="WordPress.NamingConventions.PrefixAllGlobals"/>
-		<exclude name="WordPress.Files.FileName"/>
-		<exclude name="Universal.Files.SeparateFunctionsFromOO.Mixed"/>
 	</rule>
 
 	<!--

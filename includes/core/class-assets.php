@@ -68,7 +68,7 @@ class Assets {
 			return;
 		}
 
-		$manifest_path = $this->get_plugin_dir_path( '/dist/assets.json' );
+		$manifest_path = $this->get_plugin_dir_path( '/dist/manifest.json' );
 
 		// Check if manifest file exists.
 		if ( ! file_exists( $manifest_path ) ) {

@@ -24,12 +24,9 @@
 		"composer-package"
 	],
 	"autoload": {
-		"psr-4": {
-			"CodeSoup\\ACFAdminCategories\\Core\\": "includes/core/",
-			"CodeSoup\\ACFAdminCategories\\Admin\\": "includes/admin/",
-			"CodeSoup\\ACFAdminCategories\\Traits\\": "includes/traits/",
-			"CodeSoup\\ACFAdminCategories\\": "includes/"
-		}
+		"classmap": [
+			"includes/"
+		]
 	},
 	"require": {
 		"php": ">=8.1.0"
