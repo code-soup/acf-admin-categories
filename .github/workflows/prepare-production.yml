@@ -39,6 +39,11 @@ jobs:
             - name: Install production PHP dependencies
               run: composer install --no-dev --optimize-autoloader --no-interaction
 
+            - name: Stash or clean working directory
+              run: |
+                  # Add all changes to staging first
+                  git add -A
+
             - name: Create clean production branch
               run: |
                   # Create orphan branch (no history)
@@ -46,7 +51,7 @@ jobs:
 
             - name: Remove all tracked files
               run: |
-                  git rm -rf --cached .
+                  git rm -rf .
 
             - name: Copy only production files
               run: |
