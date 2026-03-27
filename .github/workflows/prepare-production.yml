@@ -39,24 +39,29 @@ jobs:
             - name: Install production PHP dependencies
               run: composer install --no-dev --optimize-autoloader --no-interaction
 
+            - name: Remove development files from filesystem
+              run: |
+                  # Remove source files and development configs
+                  rm -rf src/
+                  rm -rf node_modules/
+                  rm -f .editorconfig .eslintrc .gitattributes .phpcs.cache .stylelintrc
+                  rm -f package.json yarn.lock phpcs.xml phpcs.xml.dist
+
             - name: Create clean production branch
               run: |
-                  # Add all files to staging, including ignored files
-                  git add -A -f
-                  # Create orphan branch (no history)
+                  # Now create orphan branch without untracked file conflicts
                   git checkout --orphan production-temp
 
-            - name: Remove all from index and keep only production files
+            - name: Add only production files
               run: |
-                  # Remove everything from index
-                  git rm -rf --cached .
-
-                  # Add back only production files
+                  # Add only production files
                   git add -f dist/
                   git add -f vendor/
                   git add -f includes/
                   git add -f languages/ 2>/dev/null || echo "No languages directory"
                   git add -f .github/
+                  git add -f .gitignore 2>/dev/null || echo "No .gitignore"
+                  git add -f composer.json
                   git add -f index.php
                   git add -f run.php
                   git add -f LICENSE.txt 2>/dev/null || echo "No LICENSE.txt"
