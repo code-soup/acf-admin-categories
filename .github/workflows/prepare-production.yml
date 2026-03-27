@@ -25,6 +25,11 @@ jobs:
                   php-version: "8.1"
                   tools: composer
 
+            - name: Setup Git
+              run: |
+                  git config --global user.name "github-actions[bot]"
+                  git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
             - name: Install yarn dependencies
               run: yarn install
 
@@ -34,33 +39,40 @@ jobs:
             - name: Install production PHP dependencies
               run: composer install --no-dev --optimize-autoloader --no-interaction
 
-            - name: Setup Git
+            - name: Create clean production branch
               run: |
-                  git config --global user.name "github-actions[bot]"
-                  git config --global user.email "github-actions[bot]@users.noreply.github.com"
+                  # Create orphan branch (no history)
+                  git checkout --orphan production-temp
 
-            - name: Commit built assets and dependencies
+            - name: Remove all tracked files
               run: |
-                  git add -f dist
-                  git add -f vendor
-                  git commit -m "Build production assets and update dependencies" || echo "No changes to commit"
+                  git rm -rf --cached .
 
-            - name: Remove src directory for production
+            - name: Copy only production files
               run: |
-                  git rm -rf src
-                  git commit -m "Remove src directory for production" || echo "No src directory to remove"
+                  # Add only the files needed for production
+                  git add -f dist/
+                  git add -f vendor/
+                  git add -f includes/
+                  git add -f languages/
+                  git add -f index.php
+                  git add -f run.php
+                  git add -f LICENSE.txt
+                  git add -f README.md
+                  git add -f CHANGELOG.md
 
-            - name: Promote to master
-              run: |
-                  git checkout master
-                  git merge develop --no-ff -m "Prepare production release from develop"
+                  # Explicitly exclude development files
+                  git reset -- src/ node_modules/ .editorconfig .eslintrc .phpcs.cache .stylelintrc package.json yarn.lock phpcs.xml.dist composer.json composer.lock .gitattributes 2>/dev/null || true
 
-            - name: Remove development files from master
+            - name: Commit production build
               run: |
-                  # Restore composer.json if it was previously removed
-                  git checkout develop -- composer.json || true
-                  git add composer.json
-                  # Remove development files
-                  git rm -f --ignore-unmatch .editorconfig .eslintrc .gitattributes .gitignore .phpcs.cache .stylelintrc package.json phpcs.xml.dist
-                  git commit -m "Remove development files from production" || echo "No development files to remove"
-                  git push origin master
+                  git commit -m "Production release from develop - $(date +'%Y-%m-%d %H:%M:%S')" || echo "No changes to commit"
+
+            - name: Force push to master
+              run: |
+                  git push origin production-temp:master --force
+
+            - name: Clean up
+              run: |
+                  git checkout develop
+                  git branch -D production-temp
