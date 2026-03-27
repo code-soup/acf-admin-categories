@@ -53,7 +53,6 @@ jobs:
                   cp composer.json /tmp/production-release/
                   cp index.php /tmp/production-release/
                   cp run.php /tmp/production-release/
-                  [ -f .gitignore ] && cp .gitignore /tmp/production-release/ || echo "No .gitignore"
                   [ -f LICENSE.txt ] && cp LICENSE.txt /tmp/production-release/ || echo "No LICENSE.txt"
                   [ -f README.md ] && cp README.md /tmp/production-release/ || echo "No README.md"
                   [ -f CHANGELOG.md ] && cp CHANGELOG.md /tmp/production-release/ || echo "No CHANGELOG.md"
