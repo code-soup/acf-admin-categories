@@ -3,7 +3,7 @@
  * Plugin Name:       CodeSoup ACF Admin Categories
  * Plugin URI:        https://github.com/code-soup/acf-admin-categories
  * Description:       A WordPress plugin that adds category organization to Advanced Custom Fields (ACF) field groups for better management and organization.
- * Version:           1.0.0
+ * Version:           1.0.1
  * Requires at least: 6.0
  * Requires PHP:      8.0
  * Author:            Code Soup

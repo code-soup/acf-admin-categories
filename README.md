@@ -84,11 +84,7 @@ add_filter( 'codesoup_acf_admin_categories_plugin_dir_url', function( $base_url 
 
 ## Changelog
 
-### 1.0.0
-- Initial release
-- Custom taxonomy for field group categories
-- Category assignment interface in ACF field groups
-- Category filtering and column display
+See [CHANGELOG.md](CHANGELOG.md) for detailed version history.
 
 ## Support
 
