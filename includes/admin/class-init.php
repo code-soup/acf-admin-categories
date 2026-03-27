@@ -155,6 +155,21 @@ class Init {
 	 * @return void
 	 */
 	public function admin_enqueue_scripts(): void {
+		// Get current screen.
+		$screen = get_current_screen();
+
+		// Only load on ACF field group pages or our taxonomy pages.
+		if ( ! $screen ) {
+			return;
+		}
+
+		$is_acf_field_group_page = self::ACF_POST_TYPE === $screen->post_type;
+		$is_taxonomy_page        = 'edit-tags' === $screen->base && isset( $screen->taxonomy ) && self::TAXONOMY_NAME === $screen->taxonomy;
+
+		if ( ! $is_acf_field_group_page && ! $is_taxonomy_page ) {
+			return;
+		}
+
 		wp_enqueue_style(
 			$this->get_plugin_id( '/wp/css' ),
 			$this->assets->get( 'admin.css' ),
