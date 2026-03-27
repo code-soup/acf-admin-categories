@@ -39,44 +39,40 @@ jobs:
             - name: Install production PHP dependencies
               run: composer install --no-dev --optimize-autoloader --no-interaction
 
-            - name: Remove development files from filesystem
+            - name: Prepare clean production directory
               run: |
-                  # Remove source files and development configs
-                  rm -rf src/
-                  rm -rf node_modules/
-                  rm -f .editorconfig .eslintrc .gitattributes .phpcs.cache .stylelintrc
-                  rm -f package.json yarn.lock phpcs.xml phpcs.xml.dist
+                  # Create temporary directory for production files
+                  mkdir -p /tmp/production-release
 
-            - name: Create clean production branch
-              run: |
-                  # Now create orphan branch without untracked file conflicts
-                  git checkout --orphan production-temp
+                  # Copy only production files
+                  cp -r dist /tmp/production-release/
+                  cp -r vendor /tmp/production-release/
+                  cp -r includes /tmp/production-release/
+                  cp -r .github /tmp/production-release/
+                  [ -d languages ] && cp -r languages /tmp/production-release/ || echo "No languages directory"
+                  cp composer.json /tmp/production-release/
+                  cp index.php /tmp/production-release/
+                  cp run.php /tmp/production-release/
+                  [ -f .gitignore ] && cp .gitignore /tmp/production-release/ || echo "No .gitignore"
+                  [ -f LICENSE.txt ] && cp LICENSE.txt /tmp/production-release/ || echo "No LICENSE.txt"
+                  [ -f README.md ] && cp README.md /tmp/production-release/ || echo "No README.md"
+                  [ -f CHANGELOG.md ] && cp CHANGELOG.md /tmp/production-release/ || echo "No CHANGELOG.md"
 
-            - name: Add only production files
+            - name: Initialize production repository
               run: |
-                  # Add only production files
-                  git add -f dist/
-                  git add -f vendor/
-                  git add -f includes/
-                  git add -f languages/ 2>/dev/null || echo "No languages directory"
-                  git add -f .github/
-                  git add -f .gitignore 2>/dev/null || echo "No .gitignore"
-                  git add -f composer.json
-                  git add -f index.php
-                  git add -f run.php
-                  git add -f LICENSE.txt 2>/dev/null || echo "No LICENSE.txt"
-                  git add -f README.md 2>/dev/null || echo "No README.md"
-                  git add -f CHANGELOG.md 2>/dev/null || echo "No CHANGELOG.md"
-
-            - name: Commit production build
-              run: |
-                  git commit -m "Production release from develop - $(date +'%Y-%m-%d %H:%M:%S')" || echo "No changes to commit"
+                  cd /tmp/production-release
+                  git init
+                  git config user.name "github-actions[bot]"
+                  git config user.email "github-actions[bot]@users.noreply.github.com"
+                  git add .
+                  git commit -m "Production release from develop - $(date +'%Y-%m-%d %H:%M:%S')"
 
             - name: Force push to master
               run: |
-                  git push origin production-temp:master --force
+                  cd /tmp/production-release
+                  git remote add origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+                  git push origin HEAD:master --force
 
             - name: Clean up
               run: |
-                  git checkout develop
-                  git branch -D production-temp
+                  rm -rf /tmp/production-release
