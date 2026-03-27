@@ -17,7 +17,7 @@
         "url": "https://github.com/code-soup/wordpress-plugin-boilerplate/issues"
     },
     "engines": {
-        "node": ">=20.0.0"
+        "node": ">=22.0.0"
     },
     "authors": [
         {
