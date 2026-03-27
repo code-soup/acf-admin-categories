@@ -1,0 +1,77 @@
+# .github/workflows/prepare-production.yml
+name: Prepare Production Release
+
+on:
+    workflow_dispatch: # Manual trigger only
+
+jobs:
+    prepare-production:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout develop branch
+              uses: actions/checkout@v3
+              with:
+                  ref: develop
+                  fetch-depth: 0
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "22.14.0"
+
+            - name: Setup PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: "8.1"
+                  tools: composer
+
+            - name: Setup Git
+              run: |
+                  git config --global user.name "github-actions[bot]"
+                  git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+            - name: Install yarn dependencies
+              run: yarn install
+
+            - name: Build production assets
+              run: yarn build:prod
+
+            - name: Install production PHP dependencies
+              run: composer install --no-dev --optimize-autoloader --no-interaction
+
+            - name: Prepare clean production directory
+              run: |
+                  # Create temporary directory for production files
+                  mkdir -p /tmp/production-release
+
+                  # Copy only production files
+                  cp -r dist /tmp/production-release/
+                  cp -r vendor /tmp/production-release/
+                  cp -r includes /tmp/production-release/
+                  cp -r .github /tmp/production-release/
+                  [ -d languages ] && cp -r languages /tmp/production-release/ || echo "No languages directory"
+                  cp composer.json /tmp/production-release/
+                  cp index.php /tmp/production-release/
+                  cp run.php /tmp/production-release/
+                  [ -f LICENSE.txt ] && cp LICENSE.txt /tmp/production-release/ || echo "No LICENSE.txt"
+                  [ -f README.md ] && cp README.md /tmp/production-release/ || echo "No README.md"
+                  [ -f CHANGELOG.md ] && cp CHANGELOG.md /tmp/production-release/ || echo "No CHANGELOG.md"
+
+            - name: Initialize production repository
+              run: |
+                  cd /tmp/production-release
+                  git init
+                  git config user.name "github-actions[bot]"
+                  git config user.email "github-actions[bot]@users.noreply.github.com"
+                  git add .
+                  git commit -m "Production release from develop - $(date +'%Y-%m-%d %H:%M:%S')"
+
+            - name: Force push to master
+              run: |
+                  cd /tmp/production-release
+                  git remote add origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+                  git push origin HEAD:master --force
+
+            - name: Clean up
+              run: |
+                  rm -rf /tmp/production-release
