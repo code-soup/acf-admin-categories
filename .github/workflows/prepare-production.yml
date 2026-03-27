@@ -39,36 +39,29 @@ jobs:
             - name: Install production PHP dependencies
               run: composer install --no-dev --optimize-autoloader --no-interaction
 
-            - name: Stash or clean working directory
-              run: |
-                  # Add all changes to staging first
-                  git add -A
-
             - name: Create clean production branch
               run: |
+                  # Add all files to staging
+                  git add -A
                   # Create orphan branch (no history)
                   git checkout --orphan production-temp
 
-            - name: Remove all tracked files
+            - name: Remove all from index and keep only production files
               run: |
-                  git rm -rf .
+                  # Remove everything from index
+                  git rm -rf --cached .
 
-            - name: Copy only production files
-              run: |
-                  # Add only the files needed for production
+                  # Add back only production files
                   git add -f dist/
                   git add -f vendor/
                   git add -f includes/
-                  git add -f languages/
+                  git add -f languages/ 2>/dev/null || echo "No languages directory"
                   git add -f .github/
                   git add -f index.php
                   git add -f run.php
-                  git add -f LICENSE.txt
-                  git add -f README.md
-                  git add -f CHANGELOG.md
-
-                  # Explicitly exclude development files
-                  git reset -- src/ node_modules/ .editorconfig .eslintrc .phpcs.cache .stylelintrc package.json yarn.lock phpcs.xml.dist phpcs.xml composer.json composer.lock .gitattributes 2>/dev/null || true
+                  git add -f LICENSE.txt 2>/dev/null || echo "No LICENSE.txt"
+                  git add -f README.md 2>/dev/null || echo "No README.md"
+                  git add -f CHANGELOG.md 2>/dev/null || echo "No CHANGELOG.md"
 
             - name: Commit production build
               run: |
