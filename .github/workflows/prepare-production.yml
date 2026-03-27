@@ -41,8 +41,8 @@ jobs:
 
             - name: Create clean production branch
               run: |
-                  # Add all files to staging
-                  git add -A
+                  # Add all files to staging, including ignored files
+                  git add -A -f
                   # Create orphan branch (no history)
                   git checkout --orphan production-temp
 
