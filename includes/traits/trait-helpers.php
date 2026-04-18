@@ -66,7 +66,8 @@ trait HelpersTrait {
 	 * @return string Plugin name.
 	 */
 	private function get_plugin_name(): string {
-		return $this->get_constant( 'PLUGIN_NAME' );
+		$name = $this->get_constant( 'PLUGIN_NAME' );
+		return false !== $name ? $name : 'CodeSoup ACF Admin Categories';
 	}
 
 	/**
@@ -76,7 +77,8 @@ trait HelpersTrait {
 	 * @return string Plugin version.
 	 */
 	private function get_plugin_version(): string {
-		return $this->get_constant( 'PLUGIN_VERSION' );
+		$version = $this->get_constant( 'PLUGIN_VERSION' );
+		return false !== $version ? $version : '1.0.2';
 	}
 
 	/**
@@ -89,7 +91,9 @@ trait HelpersTrait {
 	 * @return string Plugin ID with optional appended string.
 	 */
 	private function get_plugin_id( string $append = '' ): string {
-		$dashed = str_replace( '_', '-', $this->get_constant( 'PLUGIN_NAME' ) );
+		$name   = $this->get_constant( 'PLUGIN_NAME' );
+		$name   = false !== $name ? $name : 'codesoup-acf-admin-categories';
+		$dashed = str_replace( '_', '-', $name );
 
 		return sanitize_title( $dashed ) . $append;
 	}
@@ -102,11 +106,11 @@ trait HelpersTrait {
 	 * @return string|false Constant value or false if not found.
 	 */
 	private function get_constant( string $key ) {
-		$constants = \CodeSoup\ACFAdminCategories\Core\Init::$constants;
-		$name      = trim( strtoupper( $key ) );
+		$name  = trim( strtoupper( $key ) );
+		$value = \CodeSoup\ACFAdminCategories\Core\Init::get_constant( $name );
 
-		// Check if constant is defined first.
-		if ( ! isset( $constants[ $name ] ) ) {
+		// Check if constant is defined.
+		if ( null === $value ) {
 			// Log to error for debugging.
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
@@ -118,7 +122,7 @@ trait HelpersTrait {
 		}
 
 		// Return value by key.
-		return $constants[ $name ];
+		return $value;
 	}
 
 	/**

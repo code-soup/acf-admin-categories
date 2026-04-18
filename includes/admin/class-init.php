@@ -80,7 +80,7 @@ class Init {
 	 * @since 1.0.0
 	 * @return array|\WP_Error Array of term objects or WP_Error on failure.
 	 */
-	private function get_all_categories() {
+	protected function get_all_categories() {
 		return get_terms(
 			array(
 				'taxonomy'   => self::TAXONOMY_NAME,
@@ -98,7 +98,14 @@ class Init {
 	 * @return array Array of field group post IDs.
 	 */
 	private function get_all_field_group_ids(): array {
-		return get_posts(
+		$cache_key = 'codesoup_aac_field_group_ids';
+		$cached    = get_transient( $cache_key );
+
+		if ( false !== $cached && is_array( $cached ) ) {
+			return $cached;
+		}
+
+		$ids = get_posts(
 			array(
 				'post_type'      => self::ACF_POST_TYPE,
 				'post_status'    => 'publish',
@@ -107,6 +114,9 @@ class Init {
 				'fields'         => 'ids',
 			)
 		);
+
+		set_transient( $cache_key, $ids, 5 * MINUTE_IN_SECONDS );
+		return $ids;
 	}
 
 	/**
@@ -134,18 +144,21 @@ class Init {
 	 * @return array Array of field group post IDs.
 	 */
 	private function get_field_group_ids_by_category( int $category_id ): array {
-		$all_field_groups = $this->get_all_field_group_ids();
-		$field_group_ids  = array();
-
-		foreach ( $all_field_groups as $field_group_id ) {
-			$assigned_categories = $this->get_assigned_categories( $field_group_id );
-
-			if ( in_array( $category_id, $assigned_categories, true ) ) {
-				$field_group_ids[] = $field_group_id;
-			}
-		}
-
-		return $field_group_ids;
+		return get_posts(
+			array(
+				'post_type'      => self::ACF_POST_TYPE,
+				'post_status'    => 'publish',
+				'posts_per_page' => -1,
+				'fields'         => 'ids',
+				'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+					array(
+						'key'     => self::FIELD_CATEGORIES_META_KEY,
+						'value'   => sprintf( '"%d"', $category_id ),
+						'compare' => 'LIKE',
+					),
+				),
+			)
+		);
 	}
 
 	/**
@@ -199,6 +212,11 @@ class Init {
 	 * @return void
 	 */
 	public function render_acf_group_setting( $field_group ) {
+		// Validate field_group array has required ID key.
+		if ( ! is_array( $field_group ) || ! isset( $field_group['ID'] ) ) {
+			return;
+		}
+
 		// Get all terms from our custom taxonomy.
 		$categories = $this->get_all_categories();
 
@@ -214,7 +232,7 @@ class Init {
 				<p class="description"><?php esc_html_e( 'Assign this field group to one or more categories for better organization.', 'codesoup-acf-admin-categories' ); ?></p>
 			</div>
 			<div class="acf-input">
-				<?php if ( ! empty( $categories ) && ! is_wp_error( $categories ) ) : ?>
+				<?php if ( ! is_wp_error( $categories ) && ! empty( $categories ) ) : ?>
 					<div class="acf-checkbox-list">
 						<?php foreach ( $categories as $category ) : ?>
 							<label class="acf-checkbox-item">
@@ -268,15 +286,26 @@ class Init {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only GET parameter for filtering.
 		$selected_category = isset( $_GET['field_category'] ) ? absint( $_GET['field_category'] ) : 0;
 
+		// Validate term exists.
+		if ( $selected_category > 0 ) {
+			$term = get_term( $selected_category, self::TAXONOMY_NAME );
+			if ( ! $term || is_wp_error( $term ) ) {
+				$selected_category = 0;
+			}
+		}
+
+		// Calculate all counts in ONE query.
+		$category_counts = $this->get_all_category_counts( $categories );
+
 		// Start building the select dropdown.
 		$select_html  = '<select name="field_category" id="field-category-filter" onchange="this.form.submit()">';
 		$select_html .= '<option value="">' . esc_html__( 'All Categories', 'codesoup-acf-admin-categories' ) . '</option>';
 
 		// Add options for each category.
-		if ( ! empty( $categories ) && ! is_wp_error( $categories ) ) {
+		if ( ! is_wp_error( $categories ) && ! empty( $categories ) ) {
 			foreach ( $categories as $category ) {
 				$selected     = selected( $selected_category, $category->term_id, false );
-				$count        = $this->get_field_groups_count_by_category( $category->term_id );
+				$count        = $category_counts[ $category->term_id ] ?? 0;
 				$select_html .= sprintf(
 					'<option value="%d" %s>%s (%d)</option>',
 					esc_attr( $category->term_id ),
@@ -318,6 +347,60 @@ class Init {
 	}
 
 	/**
+	 * Get counts for all categories in one query.
+	 *
+	 * @since 1.0.2
+	 * @param array $categories Array of term objects.
+	 * @return array Associative array [term_id => count].
+	 */
+	private function get_all_category_counts( array $categories ): array {
+		if ( empty( $categories ) || is_wp_error( $categories ) ) {
+			return array();
+		}
+
+		$counts = array();
+
+		// Initialize all to zero.
+		foreach ( $categories as $category ) {
+			$counts[ $category->term_id ] = 0;
+		}
+
+		// Get all field groups with category meta in ONE query.
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Performance optimization, caching not beneficial for aggregation query.
+		$results = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT meta_value
+				FROM {$wpdb->postmeta}
+				WHERE meta_key = %s
+				AND post_id IN (
+					SELECT ID FROM {$wpdb->posts}
+					WHERE post_type = %s
+					AND post_status = 'publish'
+				)",
+				self::FIELD_CATEGORIES_META_KEY,
+				self::ACF_POST_TYPE
+			)
+		);
+
+		// Count occurrences.
+		foreach ( $results as $row ) {
+			$category_ids = maybe_unserialize( $row->meta_value );
+
+			if ( is_array( $category_ids ) ) {
+				foreach ( $category_ids as $cat_id ) {
+					if ( isset( $counts[ $cat_id ] ) ) {
+						++$counts[ $cat_id ];
+					}
+				}
+			}
+		}
+
+		return $counts;
+	}
+
+	/**
 	 * Add admin menu for ACF field categories.
 	 *
 	 * @since 1.0.0
@@ -350,7 +433,7 @@ class Init {
 
 		// Check if we're on our taxonomy page.
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only GET parameter check.
-		if ( isset( $_GET['taxonomy'] ) && self::TAXONOMY_NAME === $_GET['taxonomy'] ) {
+		if ( isset( $_GET['taxonomy'] ) && self::TAXONOMY_NAME === sanitize_key( wp_unslash( $_GET['taxonomy'] ) ) ) {
 			$parent_file = 'edit.php?post_type=' . self::ACF_POST_TYPE;
 			// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Intentional override for menu highlighting.
 			$submenu_file = 'edit-tags.php?taxonomy=' . self::TAXONOMY_NAME;
@@ -361,6 +444,15 @@ class Init {
 
 	/**
 	 * Register custom taxonomy for ACF admin categories.
+	 *
+	 * Note: Registered with empty object_type array (not attached to acf-field-group post type).
+	 * This is intentional to:
+	 * 1. Prevent WordPress from adding default taxonomy UI to ACF edit screen
+	 * 2. Avoid conflicts with ACF's custom save routines
+	 * 3. Allow full control over category assignment UI via custom metabox
+	 *
+	 * Tradeoff: Cannot use native wp_set_object_terms()/get_the_terms() functions.
+	 * Categories stored in post meta (_acf_field_categories) instead of term_relationships table.
 	 *
 	 * @since 1.0.0
 	 * @return void
@@ -418,18 +510,22 @@ class Init {
 	 * @return void
 	 */
 	public function save_field_group_categories( $field_group ): void {
+		// Validate field_group array has required ID key.
+		if ( ! is_array( $field_group ) || ! isset( $field_group['ID'] ) ) {
+			return;
+		}
+
 		// Verify nonce for security.
 		if ( ! isset( $_POST['acf_field_categories_nonce'] )
 				|| ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['acf_field_categories_nonce'] ) ), 'acf_field_categories_' . $field_group['ID'] ) ) {
 			return;
 		}
 
-		// Get selected categories from POST data.
-		$selected_categories = isset( $_POST['acf_field_categories'] ) ? array_map( 'sanitize_text_field', wp_unslash( $_POST['acf_field_categories'] ) ) : array();
+		// Get selected categories from POST data and sanitize as integers.
+		$selected_categories = isset( $_POST['acf_field_categories'] ) ? array_map( 'absint', wp_unslash( $_POST['acf_field_categories'] ) ) : array();
 
-		// Sanitize the category IDs.
-		$selected_categories = array_map( 'intval', $selected_categories );
-		$selected_categories = array_filter( $selected_categories ); // Remove any zero values.
+		// Remove any zero values.
+		$selected_categories = array_filter( $selected_categories );
 
 		// Validate that all selected categories exist.
 		$valid_categories = array();
@@ -447,6 +543,9 @@ class Init {
 			// If no categories selected, delete the meta.
 			delete_post_meta( $field_group['ID'], self::FIELD_CATEGORIES_META_KEY );
 		}
+
+		// Invalidate cached field group IDs.
+		delete_transient( 'codesoup_aac_field_group_ids' );
 
 		// Optional: Log for debugging.
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
@@ -505,7 +604,7 @@ class Init {
 	 * @param array $columns The current columns.
 	 * @return array Modified columns.
 	 */
-	public function add_category_column( $columns ) {
+	public function add_category_column( array $columns ): array {
 		$columns['category'] = __( 'Category', 'codesoup-acf-admin-categories' );
 		return $columns;
 	}
@@ -518,46 +617,57 @@ class Init {
 	 * @param int    $post_id The post ID.
 	 * @return void
 	 */
-	public function display_category_column( $column, $post_id ) {
-		if ( 'category' === $column ) {
-			// Get assigned categories from post meta.
-			$assigned_categories = $this->get_assigned_categories( $post_id );
+	public function display_category_column( string $column, int $post_id ): void {
+		if ( 'category' !== $column ) {
+			return;
+		}
 
-			if ( ! empty( $assigned_categories ) ) {
+		if ( get_post_type( $post_id ) !== self::ACF_POST_TYPE ) {
+			return;
+		}
+
+		// Get assigned categories from post meta.
+		$assigned_categories = $this->get_assigned_categories( $post_id );
+
+		if ( ! empty( $assigned_categories ) ) {
+			// Load ALL terms at once instead of one-by-one.
+			$terms = get_terms(
+				array(
+					'taxonomy'   => self::TAXONOMY_NAME,
+					'include'    => $assigned_categories,
+					'hide_empty' => false,
+				)
+			);
+
+			if ( ! empty( $terms ) && ! is_wp_error( $terms ) ) {
 				$category_links = array();
 
-				foreach ( $assigned_categories as $category_id ) {
-					$term = get_term( $category_id, self::TAXONOMY_NAME );
+				foreach ( $terms as $term ) {
+					// Create a link to filter by this category.
+					$filter_url = add_query_arg(
+						array(
+							'post_type'      => self::ACF_POST_TYPE,
+							'field_category' => $term->term_id,
+						),
+						admin_url( 'edit.php' )
+					);
 
-					if ( $term && ! is_wp_error( $term ) ) {
-						// Create a link to filter by this category.
-						$filter_url = add_query_arg(
-							array(
-								'post_type'      => self::ACF_POST_TYPE,
-								'field_category' => $category_id,
-							),
-							admin_url( 'edit.php' )
-						);
-
-						$category_links[] = sprintf(
-							'<a href="%s" title="%s">%s</a>',
-							esc_url( $filter_url ),
-							/* translators: %s: Category name */
-							esc_attr( sprintf( __( 'Filter by %s', 'codesoup-acf-admin-categories' ), $term->name ) ),
-							esc_html( $term->name )
-						);
-					}
+					$category_links[] = sprintf(
+						'<a href="%s" title="%s">%s</a>',
+						esc_url( $filter_url ),
+						/* translators: %s: Category name */
+						esc_attr( sprintf( __( 'Filter by %s', 'codesoup-acf-admin-categories' ), $term->name ) ),
+						esc_html( $term->name )
+					);
 				}
 
-				if ( ! empty( $category_links ) ) {
-					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Already escaped in sprintf above.
-					echo implode( ', ', $category_links );
-				} else {
-					echo '<span class="na">—</span>';
-				}
+				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Already escaped in sprintf above.
+				echo implode( ', ', $category_links );
 			} else {
 				echo '<span class="na">—</span>';
 			}
+		} else {
+			echo '<span class="na">—</span>';
 		}
 	}
 
@@ -568,7 +678,7 @@ class Init {
 	 * @param array $columns The current columns.
 	 * @return array Modified columns.
 	 */
-	public function make_category_column_sortable( $columns ) {
+	public function make_category_column_sortable( array $columns ): array {
 		$columns['category'] = 'category';
 		return $columns;
 	}

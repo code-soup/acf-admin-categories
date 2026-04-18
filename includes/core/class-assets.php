@@ -21,7 +21,6 @@ class Assets {
 
 	use \CodeSoup\ACFAdminCategories\Traits\HelpersTrait;
 
-
 	/**
 	 * Manifest file object containing list of all hashed assets
 	 *
@@ -30,15 +29,13 @@ class Assets {
 	 */
 	private array $manifest = array();
 
-
 	/**
-	 * URI to theme 'dist' folder
+	 * URI to plugin 'dist' folder
 	 *
 	 * @var string
 	 * @since 1.0.0
 	 */
 	private string $dist_uri;
-
 
 	/**
 	 * Initiate
@@ -60,7 +57,8 @@ class Assets {
 	 */
 	private function load_manifest(): void {
 		// Try to get cached manifest first.
-		$cache_key       = 'codesoup_aac_assets_manifest';
+		$plugin_version  = \CodeSoup\ACFAdminCategories\Core\Init::get_constant( 'PLUGIN_VERSION' ) ?? '1.0.0';
+		$cache_key       = 'codesoup_aac_assets_manifest_' . $plugin_version;
 		$cached_manifest = get_transient( $cache_key );
 
 		if ( false !== $cached_manifest && is_array( $cached_manifest ) ) {
@@ -87,7 +85,8 @@ class Assets {
 		$decoded_manifest = json_decode( $manifest_content, true );
 
 		if ( JSON_ERROR_NONE !== json_last_error() ) {
-			throw new \RuntimeException( 'Invalid JSON in assets manifest: ' . esc_html( json_last_error_msg() ) );
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception message, not HTML output.
+			throw new \RuntimeException( 'Invalid JSON in assets manifest: ' . json_last_error_msg() );
 		}
 
 		$this->manifest = is_array( $decoded_manifest ) ? $decoded_manifest : array();
@@ -108,8 +107,6 @@ class Assets {
 
 		return $this->locate( $filename );
 	}
-
-
 
 	/**
 	 * Fix URL for requested files

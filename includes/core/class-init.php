@@ -41,7 +41,7 @@ final class Init {
 	 * @var array<string, string>
 	 * @since 1.0.0
 	 */
-	public static array $constants = array();
+	private static array $constants = array();
 
 	/**
 	 * Assets service
@@ -50,6 +50,14 @@ final class Init {
 	 * @since 1.0.0
 	 */
 	protected ?Assets $assets = null;
+
+	/**
+	 * Admin initialization instance
+	 *
+	 * @var \CodeSoup\ACFAdminCategories\Admin\Init|null
+	 * @since 1.0.2
+	 */
+	protected ?\CodeSoup\ACFAdminCategories\Admin\Init $admin = null;
 
 	/**
 	 * Make constructor protected, to prevent direct instantiation
@@ -83,6 +91,12 @@ final class Init {
 	 */
 	public function init(): void {
 		try {
+			// Check ACF dependency first.
+			if ( ! $this->is_acf_active() ) {
+				add_action( 'admin_notices', array( $this, 'acf_missing_notice' ) );
+				return;
+			}
+
 			// Initialize services.
 			$this->assets = new Assets();
 
@@ -91,7 +105,7 @@ final class Init {
 
 			// Initialize admin if in admin context.
 			if ( is_admin() ) {
-				new \CodeSoup\ACFAdminCategories\Admin\Init( $this->assets );
+				$this->admin = new \CodeSoup\ACFAdminCategories\Admin\Init( $this->assets );
 			}
 		} catch ( \Exception $e ) {
 			// Log the error and re-throw.
@@ -100,11 +114,42 @@ final class Init {
 				error_log( 'Plugin initialization failed: ' . $e->getMessage() );
 			}
 			throw new \RuntimeException(
-				'Plugin initialization failed: ' . esc_html( $e->getMessage() ),
+				'Plugin initialization failed: ' . $e->getMessage(), // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception message, not HTML output.
 				0,
 				$e // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception chaining parameter.
 			);
 		}
+	}
+
+	/**
+	 * Check if ACF is active
+	 *
+	 * @since 1.0.2
+	 * @return bool
+	 */
+	private function is_acf_active(): bool {
+		return class_exists( 'ACF' ) || function_exists( 'acf' );
+	}
+
+	/**
+	 * Display admin notice when ACF is not active
+	 *
+	 * @since 1.0.2
+	 * @return void
+	 */
+	public function acf_missing_notice(): void {
+		if ( ! current_user_can( 'activate_plugins' ) ) {
+			return;
+		}
+
+		?>
+		<div class="notice notice-error is-dismissible">
+			<p>
+				<strong><?php esc_html_e( 'CodeSoup ACF Admin Categories', 'codesoup-acf-admin-categories' ); ?></strong>
+				<?php esc_html_e( 'requires Advanced Custom Fields (ACF) to be installed and active.', 'codesoup-acf-admin-categories' ); ?>
+			</p>
+		</div>
+		<?php
 	}
 
 	/**
@@ -150,5 +195,26 @@ final class Init {
 	 */
 	public function set_constants( array $constants ): void {
 		self::$constants = $constants;
+	}
+
+	/**
+	 * Get plugin constants
+	 *
+	 * @since 1.0.2
+	 * @return array<string, string> Array of plugin constants.
+	 */
+	public static function get_constants(): array {
+		return self::$constants;
+	}
+
+	/**
+	 * Get single plugin constant by key
+	 *
+	 * @since 1.0.2
+	 * @param string $key Constant key.
+	 * @return string|null Constant value or null if not found.
+	 */
+	public static function get_constant( string $key ): ?string {
+		return self::$constants[ $key ] ?? null;
 	}
 }
