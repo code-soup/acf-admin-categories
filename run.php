@@ -9,10 +9,15 @@ namespace CodeSoup\ACFAdminCategories;
 
 defined( 'ABSPATH' ) || die;
 
-// Load autoloader if exists (standalone plugin mode).
+// Load composer autoloader if exists (development or composer-installed).
 $autoload_file = __DIR__ . '/vendor/autoload.php';
 if ( file_exists( $autoload_file ) ) {
 	require_once $autoload_file;
+} else {
+	// Fallback: Manual PSR-4 autoloader for production plugin installation.
+	require_once __DIR__ . '/includes/class-autoloader.php';
+	$autoloader = new \CodeSoup\ACFAdminCategories\Autoloader( __DIR__ . '/includes' );
+	$autoloader->register();
 }
 
 /**
