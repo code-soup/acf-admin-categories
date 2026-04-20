@@ -70,6 +70,7 @@ class Init {
 		// Admin hooks.
 		add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
 		add_action( 'init', array( $this, 'register_custom_taxonomy' ) );
+		add_action( 'admin_init', array( $this, 'migrate_primary_categories' ) );
 		add_action( 'admin_menu', array( $this, 'admin_menu' ) );
 		add_action( 'parent_file', array( $this, 'set_parent_file' ) );
 		add_action( 'acf/field_group/additional_group_settings_tabs', array( $this, 'additional_group_settings_tabs' ) );
@@ -98,6 +99,60 @@ class Init {
 				'order'      => 'ASC',
 			)
 		);
+	}
+
+	/**
+	 * Migrate existing field groups to have primary category meta.
+	 * Runs once after plugin update.
+	 *
+	 * @since 1.0.2
+	 * @return void
+	 */
+	public function migrate_primary_categories(): void {
+		// Check if migration already done.
+		if ( get_option( 'codesoup_aac_primary_category_migrated' ) ) {
+			return;
+		}
+
+		global $wpdb;
+
+		// Get all field groups with categories but no primary category.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- One-time migration query.
+		$results = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT pm.post_id, pm.meta_value
+				FROM {$wpdb->postmeta} pm
+				WHERE pm.meta_key = %s
+				AND NOT EXISTS (
+					SELECT 1 FROM {$wpdb->postmeta} pm2
+					WHERE pm2.post_id = pm.post_id
+					AND pm2.meta_key = %s
+				)",
+				self::FIELD_CATEGORIES_META_KEY,
+				self::PRIMARY_CATEGORY_META_KEY
+			)
+		);
+
+		$migrated = 0;
+		foreach ( $results as $row ) {
+			$categories = maybe_unserialize( $row->meta_value );
+			if ( is_array( $categories ) && ! empty( $categories ) ) {
+				update_post_meta( $row->post_id, self::PRIMARY_CATEGORY_META_KEY, $categories[0] );
+				++$migrated;
+			}
+		}
+
+		// Mark migration as complete.
+		update_option( 'codesoup_aac_primary_category_migrated', true, false );
+
+		if ( $migrated > 0 ) {
+			$this->log_debug(
+				sprintf(
+					'Migrated primary categories for %d field groups',
+					$migrated
+				)
+			);
+		}
 	}
 
 	/**

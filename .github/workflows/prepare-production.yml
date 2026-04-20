@@ -44,7 +44,8 @@ jobs:
                   # Create temporary directory for production files
                   mkdir -p /tmp/production-release
 
-                  # Copy only production files (excludes: scripts/, src/, node_modules/, dev config files)
+                  # Copy only production files
+                  # Excludes: scripts/, src/, node_modules/, phpcs.xml, .phpcs.cache, yarn.lock, package.json
                   cp -r dist /tmp/production-release/
                   cp -r vendor /tmp/production-release/
                   cp -r includes /tmp/production-release/

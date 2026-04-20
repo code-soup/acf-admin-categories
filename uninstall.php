@@ -24,8 +24,9 @@ function codesoup_acf_admin_categories_uninstall() {
 	// Taxonomy name.
 	$taxonomy_name = 'codesoup_acf_admin_tax';
 
-	// Meta key used for category assignments.
-	$meta_key = '_acf_field_categories';
+	// Meta keys used for category assignments.
+	$meta_key         = '_acf_field_categories';
+	$primary_meta_key = '_acf_primary_category';
 
 	// 1. Delete all taxonomy terms.
 	$terms = get_terms(
@@ -46,13 +47,15 @@ function codesoup_acf_admin_categories_uninstall() {
 	// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Uninstall cleanup, direct query appropriate.
 	$wpdb->query(
 		$wpdb->prepare(
-			"DELETE FROM {$wpdb->postmeta} WHERE meta_key = %s",
-			$meta_key
+			"DELETE FROM {$wpdb->postmeta} WHERE meta_key IN (%s, %s)",
+			$meta_key,
+			$primary_meta_key
 		)
 	);
 
-	// 3. Delete all transients.
+	// 3. Delete all transients and options.
 	delete_transient( 'codesoup_aac_field_group_ids' );
+	delete_option( 'codesoup_aac_primary_category_migrated' );
 
 	// Delete version-based asset manifest transients (all versions).
 	// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Uninstall cleanup, direct query appropriate.
