@@ -30,12 +30,6 @@ jobs:
                   git config --global user.name "github-actions[bot]"
                   git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-            - name: Install yarn dependencies
-              run: yarn install
-
-            - name: Build production assets
-              run: yarn build:prod
-
             - name: Install production PHP dependencies
               run: composer install --no-dev --optimize-autoloader --no-interaction
 
@@ -45,7 +39,7 @@ jobs:
                   mkdir -p /tmp/production-release
 
                   # Copy only production files
-                  # Excludes: scripts/, src/, node_modules/, phpcs.xml, .phpcs.cache, yarn.lock, package.json
+                  # Excludes: scripts/, phpcs.xml, .phpcs.cache
                   cp -r dist /tmp/production-release/
                   cp -r vendor /tmp/production-release/
                   cp -r includes /tmp/production-release/
