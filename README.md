@@ -87,14 +87,7 @@ if ( file_exists( $acf_categories ) ) {
 ## Features
 
 - **Categorize Field Groups**: Organize ACF field groups with custom categories
-- **Hierarchical Categories**: Create parent/child category relationships
-- **Dropdown Filtering**: Quick filter field groups by category
-- **Sortable Column**: Click column header to sort by category name alphabetically
-- **Click-to-Filter**: Click category name in list to filter instantly
-- **Multiple Categories**: Assign multiple categories to single field group
-- **Zero Dependencies**: No external packages required - works standalone
 - **Composer Ready**: Install via Composer or WordPress plugin directory
-- **Auto-Migration**: Automatically migrates existing data on plugin update
 
 ## Screenshots
 
