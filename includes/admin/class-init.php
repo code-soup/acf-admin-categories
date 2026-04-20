@@ -37,6 +37,13 @@ class Init {
 	private const FIELD_CATEGORIES_META_KEY = '_acf_field_categories';
 
 	/**
+	 * Meta key for storing primary category (for sorting)
+	 *
+	 * @since 1.0.2
+	 */
+	private const PRIMARY_CATEGORY_META_KEY = '_acf_primary_category';
+
+	/**
 	 * ACF field group post type
 	 *
 	 * @since 1.0.0
@@ -70,6 +77,7 @@ class Init {
 		add_action( 'acf/update_field_group', array( $this, 'save_field_group_categories' ) );
 		add_action( 'views_edit-acf-field-group', array( $this, 'edit_view' ) );
 		add_action( 'pre_get_posts', array( $this, 'filter_field_groups_by_category' ) );
+		add_filter( 'posts_clauses', array( $this, 'sort_by_category_clauses' ), 10, 2 );
 		add_filter( 'manage_acf-field-group_posts_columns', array( $this, 'add_category_column' ), 20 );
 		add_action( 'manage_acf-field-group_posts_custom_column', array( $this, 'display_category_column' ), 20, 2 );
 		add_filter( 'manage_edit-acf-field-group_sortable_columns', array( $this, 'make_category_column_sortable' ), 20 );
@@ -540,9 +548,12 @@ class Init {
 		// Save the categories as post meta.
 		if ( ! empty( $valid_categories ) ) {
 			update_post_meta( $field_group['ID'], self::FIELD_CATEGORIES_META_KEY, $valid_categories );
+			// Save first category as primary (for sorting).
+			update_post_meta( $field_group['ID'], self::PRIMARY_CATEGORY_META_KEY, $valid_categories[0] );
 		} else {
 			// If no categories selected, delete the meta.
 			delete_post_meta( $field_group['ID'], self::FIELD_CATEGORIES_META_KEY );
+			delete_post_meta( $field_group['ID'], self::PRIMARY_CATEGORY_META_KEY );
 		}
 
 		// Invalidate cached field group IDs.
@@ -566,33 +577,83 @@ class Init {
 	 * @return void
 	 */
 	public function filter_field_groups_by_category( $query ) {
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only GET parameter for filtering.
-		if ( ! is_admin() || ! $query->is_main_query() || ! isset( $_GET['field_category'] ) ) {
+		// Only apply to admin main query for ACF field groups.
+		if ( ! is_admin() || ! $query->is_main_query() ) {
 			return;
 		}
 
-		// Only apply to ACF field group queries.
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only GET parameter check.
 		if ( ! isset( $_GET['post_type'] ) || self::ACF_POST_TYPE !== $_GET['post_type'] ) {
 			return;
 		}
 
-		// Sanitize the category ID (read-only operation, no nonce needed for GET filtering).
+		// Handle category filtering.
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only GET parameter for filtering.
-		$selected_category = absint( $_GET['field_category'] );
+		if ( isset( $_GET['field_category'] ) ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only GET parameter for filtering.
+			$selected_category = absint( $_GET['field_category'] );
 
-		if ( $selected_category > 0 ) {
-			// Get all field group IDs that have this category assigned.
-			$field_group_ids = $this->get_field_group_ids_by_category( $selected_category );
+			if ( $selected_category > 0 ) {
+				$field_group_ids = $this->get_field_group_ids_by_category( $selected_category );
 
-			// If we found field groups with this category, filter to only those.
-			if ( ! empty( $field_group_ids ) ) {
-				$query->set( 'post__in', $field_group_ids );
-			} else {
-				// No field groups found with this category, show none.
-				$query->set( 'post__in', array( 0 ) );
+				if ( ! empty( $field_group_ids ) ) {
+					$query->set( 'post__in', $field_group_ids );
+				} else {
+					$query->set( 'post__in', array( 0 ) );
+				}
 			}
 		}
+
+	}
+
+	/**
+	 * Modify SQL clauses to sort by category term name.
+	 *
+	 * @since 1.0.2
+	 * @param array     $clauses SQL clauses.
+	 * @param \WP_Query $query The query object.
+	 * @return array Modified clauses.
+	 */
+	public function sort_by_category_clauses( array $clauses, \WP_Query $query ): array {
+		global $wpdb;
+
+		// Only apply to admin ACF field group list with category orderby.
+		if ( ! is_admin() || ! $query->is_main_query() ) {
+			return $clauses;
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only GET parameter check.
+		if ( ! isset( $_GET['post_type'] ) || self::ACF_POST_TYPE !== $_GET['post_type'] ) {
+			return $clauses;
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only GET parameter for sorting.
+		if ( ! isset( $_GET['orderby'] ) || 'category' !== $_GET['orderby'] ) {
+			return $clauses;
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only GET parameter for sort direction.
+		$order = isset( $_GET['order'] ) && 'desc' === strtolower( $_GET['order'] )
+			? 'DESC'
+			: 'ASC';
+
+		// Join primary category meta and term.
+		$clauses['join'] .= sprintf(
+			" LEFT JOIN {$wpdb->postmeta} AS pm_category ON {$wpdb->posts}.ID = pm_category.post_id AND pm_category.meta_key = '%s'",
+			esc_sql( self::PRIMARY_CATEGORY_META_KEY )
+		);
+
+		$clauses['join'] .= sprintf(
+			" LEFT JOIN {$wpdb->terms} AS t_category ON pm_category.meta_value = t_category.term_id"
+		);
+
+		// Order by term name, nulls last.
+		$clauses['orderby'] = sprintf(
+			't_category.name IS NULL, t_category.name %s',
+			esc_sql( $order )
+		);
+
+		return $clauses;
 	}
 
 	/**
