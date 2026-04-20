@@ -110,10 +110,7 @@ final class Init {
 			}
 		} catch ( \Exception $e ) {
 			// Log the error and re-throw.
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-				error_log( 'Plugin initialization failed: ' . $e->getMessage() );
-			}
+			self::log_debug( 'Plugin initialization failed: ' . $e->getMessage() );
 			throw new \RuntimeException(
 				'Plugin initialization failed: ' . $e->getMessage(), // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Exception message, not HTML output.
 				0,
@@ -217,5 +214,43 @@ final class Init {
 	 */
 	public static function get_constant( string $key ): ?string {
 		return self::$constants[ $key ] ?? null;
+	}
+
+	/**
+	 * Log message to error log if WP_DEBUG enabled
+	 *
+	 * @since 1.0.2
+	 * @param string $message Message to log.
+	 * @return void
+	 */
+	public static function log_debug( string $message ): void {
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG && function_exists( 'error_log' ) ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log( $message );
+		}
+	}
+
+	/**
+	 * Add admin notice
+	 *
+	 * @since 1.0.2
+	 * @param string $message Notice message.
+	 * @param string $type Notice type (error|warning|success|info).
+	 * @return void
+	 */
+	public static function add_admin_notice( string $message, string $type = 'error' ): void {
+		add_action(
+			'admin_notices',
+			function () use ( $message, $type ) {
+				if ( ! current_user_can( 'manage_options' ) ) {
+					return;
+				}
+				printf(
+					'<div class="notice notice-%s"><p>%s</p></div>',
+					esc_attr( $type ),
+					esc_html( $message )
+				);
+			}
+		);
 	}
 }

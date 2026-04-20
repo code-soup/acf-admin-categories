@@ -549,16 +549,13 @@ class Init {
 		delete_transient( 'codesoup_aac_field_group_ids' );
 
 		// Optional: Log for debugging.
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			error_log(
-				sprintf(
-					'ACF Field Group %d categories updated: %s',
-					$field_group['ID'],
-					implode( ', ', $valid_categories )
-				)
-			);
-		}
+		$this->log_debug(
+			sprintf(
+				'ACF Field Group %d categories updated: %s',
+				$field_group['ID'],
+				implode( ', ', $valid_categories )
+			)
+		);
 	}
 
 	/**

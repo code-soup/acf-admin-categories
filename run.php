@@ -9,19 +9,10 @@ namespace CodeSoup\ACFAdminCategories;
 
 defined( 'ABSPATH' ) || die;
 
-// Load autoloader.
+// Load autoloader if exists (standalone plugin mode).
 $autoload_file = __DIR__ . '/vendor/autoload.php';
 if ( file_exists( $autoload_file ) ) {
 	require_once $autoload_file;
-}
-
-// Verify core class loaded.
-if ( ! class_exists( 'CodeSoup\ACFAdminCategories\Core\Init' ) ) {
-	wp_die(
-		esc_html__( 'CodeSoup ACF Admin Categories: Core classes not found. Run composer install.', 'codesoup-acf-admin-categories' ),
-		esc_html__( 'Plugin Error', 'codesoup-acf-admin-categories' ),
-		array( 'back_link' => true )
-	);
 }
 
 /**
@@ -36,10 +27,28 @@ function plugin(): Core\Init {
 
 /**
  * Initialize plugin.
+ * Hooks into after_setup_theme to ensure theme autoloader loaded first.
  */
 add_action(
-	'plugins_loaded',
+	'after_setup_theme',
 	function () {
+		// Verify classes available (either from plugin vendor or theme vendor).
+		if ( ! class_exists( 'CodeSoup\ACFAdminCategories\Core\Init' ) ) {
+			add_action(
+				'admin_notices',
+				function () {
+					if ( ! current_user_can( 'manage_options' ) ) {
+						return;
+					}
+					printf(
+						'<div class="notice notice-error"><p>%s</p></div>',
+						esc_html__( 'CodeSoup ACF Admin Categories: Core classes not found. Install plugin via composer or run composer install in plugin directory.', 'codesoup-acf-admin-categories' )
+					);
+				}
+			);
+			return;
+		}
+
 		try {
 			$instance = plugin();
 			$instance->set_constants(
@@ -55,30 +64,15 @@ add_action(
 			);
 			$instance->init();
 		} catch ( \Throwable $e ) {
-			add_action(
-				'admin_notices',
-				function () use ( $e ) {
-					if ( ! current_user_can( 'manage_options' ) ) {
-						return;
-					}
-					printf(
-						'<div class="notice notice-error"><p>%s</p></div>',
-						esc_html(
-							sprintf(
-								'CodeSoup ACF Admin Categories Error: %s',
-								$e->getMessage()
-							)
-						)
-					);
-				}
+			Core\Init::add_admin_notice(
+				sprintf(
+					'CodeSoup ACF Admin Categories Error: %s',
+					$e->getMessage()
+				)
 			);
-
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG && function_exists( 'error_log' ) ) {
-				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-				error_log( 'CodeSoup ACF Admin Categories: ' . $e->getMessage() );
-				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-				error_log( $e->getTraceAsString() );
-			}
+			Core\Init::log_debug( 'CodeSoup ACF Admin Categories: ' . $e->getMessage() );
+			Core\Init::log_debug( $e->getTraceAsString() );
 		}
-	}
+	},
+	20
 );

@@ -113,10 +113,7 @@ trait HelpersTrait {
 		// Check if constant is defined.
 		if ( null === $value ) {
 			// Log to error for debugging.
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-				error_log( "CodeSoup ACF Admin Categories: Invalid constant requested: {$name}" );
-			}
+			$this->log_debug( "CodeSoup ACF Admin Categories: Invalid constant requested: {$name}" );
 
 			// Exit.
 			return false;
@@ -148,5 +145,19 @@ trait HelpersTrait {
 		$url  = implode( $separator, $url );
 
 		return untrailingslashit( $url );
+	}
+
+	/**
+	 * Log message to error log if WP_DEBUG enabled
+	 *
+	 * @since 1.0.2
+	 * @param string $message Message to log.
+	 * @return void
+	 */
+	private function log_debug( string $message ): void {
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG && function_exists( 'error_log' ) ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			error_log( $message );
+		}
 	}
 }
