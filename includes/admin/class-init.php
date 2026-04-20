@@ -153,21 +153,26 @@ class Init {
 	 * @return array Array of field group post IDs.
 	 */
 	private function get_field_group_ids_by_category( int $category_id ): array {
-		return get_posts(
-			array(
-				'post_type'      => self::ACF_POST_TYPE,
-				'post_status'    => 'publish',
-				'posts_per_page' => -1,
-				'fields'         => 'ids',
-				'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
-					array(
-						'key'     => self::FIELD_CATEGORIES_META_KEY,
-						'value'   => sprintf( '"%d"', $category_id ),
-						'compare' => 'LIKE',
-					),
-				),
+		global $wpdb;
+
+		// Get all posts with category meta.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Complex serialized meta query, get_posts() LIKE insufficient.
+		$post_ids = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT DISTINCT post_id
+				FROM {$wpdb->postmeta}
+				INNER JOIN {$wpdb->posts} ON {$wpdb->postmeta}.post_id = {$wpdb->posts}.ID
+				WHERE meta_key = %s
+				AND meta_value LIKE %s
+				AND post_type = %s
+				AND post_status = 'publish'",
+				self::FIELD_CATEGORIES_META_KEY,
+				'%' . $wpdb->esc_like( serialize( $category_id ) ) . '%',
+				self::ACF_POST_TYPE
 			)
 		);
+
+		return $post_ids ? array_map( 'intval', $post_ids ) : array();
 	}
 
 	/**
