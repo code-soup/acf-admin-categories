@@ -9,8 +9,9 @@ declare(strict_types=1);
 
 namespace CodeSoup\ACFAdminCategories\Admin;
 
-// Exit if accessed directly.
-defined( 'ABSPATH' ) || exit;
+if ( ! defined( 'ABSPATH' ) ) {
+	return;
+}
 
 /**
  * The admin-specific functionality of the plugin.

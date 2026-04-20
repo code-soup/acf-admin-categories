@@ -15,8 +15,9 @@ declare( strict_types=1 );
 
 namespace CodeSoup\ACFAdminCategories\Core;
 
-// Exit if accessed directly.
-defined( 'ABSPATH' ) || exit;
+if ( ! defined( 'ABSPATH' ) ) {
+	return;
+}
 
 /**
  * Core plugin initialization class.
