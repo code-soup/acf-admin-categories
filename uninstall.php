@@ -57,14 +57,6 @@ function codesoup_acf_admin_categories_uninstall() {
 	delete_transient( 'codesoup_aac_field_group_ids' );
 	delete_option( 'codesoup_aac_primary_category_migrated' );
 
-	// Delete version-based asset manifest transients (all versions).
-	// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Uninstall cleanup, direct query appropriate.
-	$wpdb->query(
-		"DELETE FROM {$wpdb->options}
-		WHERE option_name LIKE '_transient_codesoup_aac_assets_manifest_%'
-		OR option_name LIKE '_transient_timeout_codesoup_aac_assets_manifest_%'"
-	);
-
 	// 4. Unregister the taxonomy (in case it's still registered).
 	unregister_taxonomy( $taxonomy_name );
 

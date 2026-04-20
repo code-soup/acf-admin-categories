@@ -51,24 +51,12 @@ class Init {
 	private const ACF_POST_TYPE = 'acf-field-group';
 
 	/**
-	 * Assets loader class.
-	 *
-	 * @var \CodeSoup\ACFAdminCategories\Core\Assets
-	 * @since 1.0.0
-	 */
-	protected \CodeSoup\ACFAdminCategories\Core\Assets $assets;
-
-	/**
 	 * Initialize the class and set its properties.
 	 *
-	 * @since    1.0.0
-	 * @param \CodeSoup\ACFAdminCategories\Core\Assets $assets Assets service.
+	 * @since 1.0.0
 	 */
-	public function __construct( \CodeSoup\ACFAdminCategories\Core\Assets $assets ) {
-		$this->assets = $assets;
-
+	public function __construct() {
 		// Admin hooks.
-		add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
 		add_action( 'init', array( $this, 'register_custom_taxonomy' ) );
 		add_action( 'admin_init', array( $this, 'migrate_primary_categories' ) );
 		add_action( 'admin_menu', array( $this, 'admin_menu' ) );
@@ -228,37 +216,6 @@ class Init {
 		);
 
 		return $post_ids ? array_map( 'intval', $post_ids ) : array();
-	}
-
-	/**
-	 * Register the CSS/JavaScript for the admin area.
-	 *
-	 * @since 1.0.0
-	 * @return void
-	 */
-	public function admin_enqueue_scripts(): void {
-		// Get current screen.
-		$screen = get_current_screen();
-
-		// Only load on ACF field group pages or our taxonomy pages.
-		if ( ! $screen ) {
-			return;
-		}
-
-		$is_acf_field_group_page = self::ACF_POST_TYPE === $screen->post_type;
-		$is_taxonomy_page        = 'edit-tags' === $screen->base && isset( $screen->taxonomy ) && self::TAXONOMY_NAME === $screen->taxonomy;
-
-		if ( ! $is_acf_field_group_page && ! $is_taxonomy_page ) {
-			return;
-		}
-
-		wp_enqueue_style(
-			$this->get_plugin_id( '/wp/css' ),
-			$this->assets->get( 'admin.css' ),
-			array(),
-			$this->get_plugin_version(),
-			'all'
-		);
 	}
 
 	/**

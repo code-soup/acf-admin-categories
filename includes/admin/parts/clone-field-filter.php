@@ -14,11 +14,13 @@ defined( 'ABSPATH' ) || exit;
 
 <div class="acf-checkbox-group">
 	<b><?php esc_html_e( 'Filter fields by category', 'codesoup-acf-admin-categories' ); ?></b>
-	<?php foreach ( $categories as $category ) : ?>
-		<label>
-			<input type="checkbox" name="codesoup_category_filter" value="<?php echo esc_attr( $category->term_id ); ?>" />
-			<?php echo esc_html( $category->name ); ?>
-		</label>
-		<br>
-	<?php endforeach; ?>
+	<?php
+	foreach ( $categories as $category ) {
+		printf(
+			'<label><input type="checkbox" name="codesoup_category_filter" value="%s" />%s</label><br>',
+			esc_attr( $category->term_id ),
+			esc_html( $category->name )
+		);
+	}
+	?>
 </div>

@@ -45,14 +45,6 @@ final class Init {
 	private static array $constants = array();
 
 	/**
-	 * Assets service
-	 *
-	 * @var Assets|null
-	 * @since 1.0.0
-	 */
-	protected ?Assets $assets = null;
-
-	/**
 	 * Admin initialization instance
 	 *
 	 * @var \CodeSoup\ACFAdminCategories\Admin\Init|null
@@ -98,15 +90,12 @@ final class Init {
 				return;
 			}
 
-			// Initialize services.
-			$this->assets = new Assets();
-
 			// Load textdomain.
 			add_action( 'init', array( $this, 'load_textdomain' ) );
 
 			// Initialize admin if in admin context.
 			if ( is_admin() ) {
-				$this->admin = new \CodeSoup\ACFAdminCategories\Admin\Init( $this->assets );
+				$this->admin = new \CodeSoup\ACFAdminCategories\Admin\Init();
 			}
 		} catch ( \Exception $e ) {
 			// Log the error and re-throw.
@@ -170,19 +159,7 @@ final class Init {
 		);
 	}
 
-	/**
-	 * Get assets service
-	 *
-	 * @since 1.0.0
-	 * @return Assets The assets service
-	 */
-	public function get_assets(): Assets {
-		if ( null === $this->assets ) {
-			$this->assets = new Assets();
-		}
 
-		return $this->assets;
-	}
 
 	/**
 	 * Set plugin constants
