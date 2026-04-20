@@ -64,7 +64,7 @@ add_action(
 					'MIN_MYSQL_VERSION'            => '',
 					'PLUGIN_PREFIX'                => 'codesoup_aac',
 					'PLUGIN_NAME'                  => 'CodeSoup ACF Admin Categories',
-					'PLUGIN_VERSION'               => '1.0.2',
+					'PLUGIN_VERSION'               => '1.0.3',
 				)
 			);
 			$instance->init();
