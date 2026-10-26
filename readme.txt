@@ -2,7 +2,7 @@
 Contributors: codesoup
 Tags: acf, advanced-custom-fields, custom-fields, taxonomy, organization
 Requires at least: 6.0
-Tested up to: 7.1
+Tested up to: 7.1.3
 Requires PHP: 8.1
 Stable tag: 1.0.4
 License: GPLv3 or later
@@ -29,7 +29,7 @@ CodeSoup ACF Admin Categories extends Advanced Custom Fields by adding a taxonom
 * Fixed category filtering on the field groups list.
 * Scoped admin list query hooks to the field groups screen.
 * Added capability check when saving field group categories.
-* Updated WordPress compatibility metadata (tested up to 7.1).
+* Updated WordPress compatibility metadata (tested up to 7.1.3).
 
 = 1.0.3 =
 * Sortable category column; category filtering and standalone plugin fixes.

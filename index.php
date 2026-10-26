@@ -6,7 +6,7 @@
  * Version:           1.0.4
  * Requires at least: 6.0
  * Requires PHP:      8.1
- * Tested up to:      7.1
+ * Tested up to:      7.1.3
  * Author:            Code Soup
  * Author URI:        https://www.codesoup.co
  * License:           GPL v3 or later

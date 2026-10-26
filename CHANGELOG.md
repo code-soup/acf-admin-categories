@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- WordPress compatibility metadata: tested up to 7.1 (requires WordPress 6.0+, PHP 8.1+)
+- WordPress compatibility metadata: tested up to 7.1.3 (requires WordPress 6.0+, PHP 8.1+)
 
 ## [1.0.3] - 2026-04-20
 
