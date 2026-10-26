@@ -50,6 +50,7 @@ jobs:
                   cp uninstall.php /tmp/production-release/
                   [ -f LICENSE.txt ] && cp LICENSE.txt /tmp/production-release/ || echo "No LICENSE.txt"
                   [ -f README.md ] && cp README.md /tmp/production-release/ || echo "No README.md"
+                  [ -f readme.txt ] && cp readme.txt /tmp/production-release/ || echo "No readme.txt"
                   [ -f CHANGELOG.md ] && cp CHANGELOG.md /tmp/production-release/ || echo "No CHANGELOG.md"
 
             - name: Initialize production repository

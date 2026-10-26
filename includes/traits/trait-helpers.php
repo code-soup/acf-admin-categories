@@ -79,7 +79,7 @@ trait HelpersTrait {
 	 */
 	private function get_plugin_version(): string {
 		$version = $this->get_constant( 'PLUGIN_VERSION' );
-		return is_string( $version ) && '' !== $version ? $version : '1.0.3';
+		return is_string( $version ) && '' !== $version ? $version : '1.0.4';
 	}
 
 	/**

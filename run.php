@@ -60,11 +60,12 @@ add_action(
 				array(
 					'MIN_WP_VERSION_SUPPORT_TERMS' => '6.0',
 					'MIN_WP_VERSION'               => '6.0',
+					'TESTED_WP_VERSION'            => '7.1',
 					'MIN_PHP_VERSION'              => '8.1',
 					'MIN_MYSQL_VERSION'            => '',
 					'PLUGIN_PREFIX'                => 'codesoup_aac',
 					'PLUGIN_NAME'                  => 'CodeSoup ACF Admin Categories',
-					'PLUGIN_VERSION'               => '1.0.3',
+					'PLUGIN_VERSION'               => '1.0.4',
 				)
 			);
 			$instance->init();

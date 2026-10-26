@@ -11,7 +11,7 @@ CodeSoup ACF Admin Categories extends the Advanced Custom Fields plugin by addin
 
 ## Requirements
 
-- WordPress 6.0 or higher
+- WordPress 6.0 or higher (tested up to 7.1)
 - PHP 8.1 or higher
 - Advanced Custom Fields (ACF) Pro or Free version
 
