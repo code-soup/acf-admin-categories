@@ -68,7 +68,7 @@ trait HelpersTrait {
 	 */
 	private function get_plugin_name(): string {
 		$name = $this->get_constant( 'PLUGIN_NAME' );
-		return false !== $name ? $name : 'CodeSoup ACF Admin Categories';
+		return is_string( $name ) && '' !== $name ? $name : 'CodeSoup ACF Admin Categories';
 	}
 
 	/**
@@ -79,7 +79,7 @@ trait HelpersTrait {
 	 */
 	private function get_plugin_version(): string {
 		$version = $this->get_constant( 'PLUGIN_VERSION' );
-		return false !== $version ? $version : '1.0.2';
+		return is_string( $version ) && '' !== $version ? $version : '1.0.4';
 	}
 
 	/**

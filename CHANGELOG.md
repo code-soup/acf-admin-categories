@@ -5,7 +5,20 @@ All notable changes to CodeSoup ACF Admin Categories will be documented in this 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.3] - 2025-04-20
+## [1.0.4] - 2026-10-26
+
+### Fixed
+
+- Load the correct `codesoup-acf-admin-categories` text domain so bundled translations apply
+- Category list filtering matches serialized category assignments accurately
+- Admin query hooks run only on the ACF field groups list screen
+- Capability check when saving field group category assignments
+
+### Changed
+
+- WordPress compatibility metadata: tested up to 7.1.3 (requires WordPress 6.0+, PHP 8.1+)
+
+## [1.0.3] - 2026-04-20
 
 ### Added
 
