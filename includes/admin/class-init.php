@@ -144,34 +144,6 @@ class Init {
 	}
 
 	/**
-	 * Get all ACF field group IDs that have category assignments.
-	 *
-	 * @since 1.0.0
-	 * @return array Array of field group post IDs.
-	 */
-	private function get_all_field_group_ids(): array {
-		$cache_key = 'codesoup_aac_field_group_ids';
-		$cached    = get_transient( $cache_key );
-
-		if ( false !== $cached && is_array( $cached ) ) {
-			return $cached;
-		}
-
-		$ids = get_posts(
-			array(
-				'post_type'      => self::ACF_POST_TYPE,
-				'post_status'    => 'publish',
-				'posts_per_page' => -1,
-				'meta_key'       => self::FIELD_CATEGORIES_META_KEY, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
-				'fields'         => 'ids',
-			)
-		);
-
-		set_transient( $cache_key, $ids, 5 * MINUTE_IN_SECONDS );
-		return $ids;
-	}
-
-	/**
 	 * Get assigned categories for a field group.
 	 *
 	 * @since 1.0.0
@@ -196,26 +168,56 @@ class Init {
 	 * @return array Array of field group post IDs.
 	 */
 	private function get_field_group_ids_by_category( int $category_id ): array {
+		if ( $category_id <= 0 ) {
+			return array();
+		}
+
 		global $wpdb;
 
-		// Get all posts with category meta.
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Complex serialized meta query, get_posts() LIKE insufficient.
-		$post_ids = $wpdb->get_col(
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Serialized array meta; filter in PHP for accuracy.
+		$results = $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT DISTINCT post_id
-				FROM {$wpdb->postmeta}
-				INNER JOIN {$wpdb->posts} ON {$wpdb->postmeta}.post_id = {$wpdb->posts}.ID
-				WHERE meta_key = %s
-				AND meta_value LIKE %s
-				AND post_type = %s
-				AND post_status = 'publish'",
+				"SELECT pm.post_id, pm.meta_value
+				FROM {$wpdb->postmeta} pm
+				INNER JOIN {$wpdb->posts} p ON pm.post_id = p.ID
+				WHERE pm.meta_key = %s
+				AND p.post_type = %s
+				AND p.post_status = 'publish'",
 				self::FIELD_CATEGORIES_META_KEY,
-				'%' . $wpdb->esc_like( serialize( $category_id ) ) . '%',
 				self::ACF_POST_TYPE
 			)
 		);
 
-		return $post_ids ? array_map( 'intval', $post_ids ) : array();
+		$post_ids = array();
+		foreach ( $results as $row ) {
+			$category_ids = maybe_unserialize( $row->meta_value );
+			if ( is_array( $category_ids ) && in_array( $category_id, $category_ids, true ) ) {
+				$post_ids[] = (int) $row->post_id;
+			}
+		}
+
+		return $post_ids;
+	}
+
+	/**
+	 * Whether the current request is the ACF field groups list screen.
+	 *
+	 * @since 1.0.4
+	 * @return bool
+	 */
+	private function is_field_group_list_screen(): bool {
+		if ( ! is_admin() ) {
+			return false;
+		}
+
+		if ( function_exists( 'get_current_screen' ) ) {
+			$screen = get_current_screen();
+			return $screen && 'edit-acf-field-group' === $screen->id;
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Fallback before screen is available.
+		return isset( $_GET['post_type'] )
+			&& self::ACF_POST_TYPE === sanitize_key( wp_unslash( $_GET['post_type'] ) );
 	}
 
 	/**
@@ -359,17 +361,6 @@ class Init {
 		);
 
 		return $views;
-	}
-
-	/**
-	 * Get count of field groups assigned to a specific category.
-	 *
-	 * @since 1.0.0
-	 * @param int $category_id The category term ID.
-	 * @return int Number of field groups in this category.
-	 */
-	private function get_field_groups_count_by_category( int $category_id ): int {
-		return count( $this->get_field_group_ids_by_category( $category_id ) );
 	}
 
 	/**
@@ -541,6 +532,10 @@ class Init {
 			return;
 		}
 
+		if ( ! current_user_can( 'edit_post', (int) $field_group['ID'] ) ) {
+			return;
+		}
+
 		// Verify nonce for security.
 		if ( ! isset( $_POST['acf_field_categories_nonce'] )
 				|| ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['acf_field_categories_nonce'] ) ), 'acf_field_categories_' . $field_group['ID'] ) ) {
@@ -595,12 +590,7 @@ class Init {
 	 */
 	public function filter_field_groups_by_category( $query ) {
 		// Only apply to admin main query for ACF field groups.
-		if ( ! is_admin() || ! $query->is_main_query() ) {
-			return;
-		}
-
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only GET parameter check.
-		if ( ! isset( $_GET['post_type'] ) || self::ACF_POST_TYPE !== $_GET['post_type'] ) {
+		if ( ! $query->is_main_query() || ! $this->is_field_group_list_screen() ) {
 			return;
 		}
 
@@ -635,12 +625,7 @@ class Init {
 		global $wpdb;
 
 		// Only apply to admin ACF field group list with category orderby.
-		if ( ! is_admin() || ! $query->is_main_query() ) {
-			return $clauses;
-		}
-
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only GET parameter check.
-		if ( ! isset( $_GET['post_type'] ) || self::ACF_POST_TYPE !== $_GET['post_type'] ) {
+		if ( ! $query->is_main_query() || ! $this->is_field_group_list_screen() ) {
 			return $clauses;
 		}
 
