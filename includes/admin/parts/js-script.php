@@ -15,8 +15,8 @@ defined( 'ABSPATH' ) || exit;
 ?>
 
 <script type="text/javascript">
-	if ( ! ( 'acf' in window ) )
-	{
+(function () {
+	if ( ! ( 'acf' in window ) ) {
 		return;
 	}
 
@@ -37,4 +37,5 @@ defined( 'ABSPATH' ) || exit;
 		return data;
 
 	});
+})();
 </script>

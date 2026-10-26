@@ -146,14 +146,11 @@ final class Init {
 	 * @return void
 	 */
 	public function load_textdomain(): void {
-		$plugin_name = $this->get_plugin_name();
-		$text_domain = strtolower( str_replace( '_', '-', $plugin_name ) );
-
 		$languages_path = $this->get_plugin_dir_path( '/languages' );
 		$relative_path  = plugin_basename( $languages_path );
 
 		load_plugin_textdomain(
-			$text_domain,
+			'codesoup-acf-admin-categories',
 			false,
 			$relative_path
 		);
