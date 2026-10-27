@@ -1,0 +1,26 @@
+# Applied in /tmp/production-release after production-files are copied.
+# See https://github.com/code-soup/wp-plugin-production-deploy
+
+# Do not ship dev tooling or CI to master
+.github/
+scripts/
+docs/
+.cursor/
+agent-skills/
+
+# Dev / quality config
+phpcs.xml
+.phpcs.cache
+.editorconfig
+.gitignore
+.gitattributes
+.deployignore
+
+# Composer vendor is installed during the action but this plugin uses the
+# built-in PSR-4 autoloader when vendor is absent (see run.php).
+vendor/
+
+# Accidental copies from develop tree
+node_modules/
+src/
+dist/

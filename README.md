@@ -100,6 +100,16 @@ if ( file_exists( $acf_categories ) ) {
 3. **Category Management** - Create and manage your field group categories with hierarchical support
    ![Create and manage your field group categories](assets/screenshot-03.png)
 
+## Production deployment
+
+Releases use the shared [wp-plugin-production-deploy](https://github.com/code-soup/wp-plugin-production-deploy) GitHub Action.
+
+1. Merge changes into **`develop`** and run `./scripts/validate-version.sh`.
+2. In GitHub: **Actions → Prepare Production Release → Run workflow** (checks out `develop`, builds, force-pushes **`master`**).
+3. Create a **GitHub Release** tag and ZIP from `master` (the workflow does not tag automatically).
+
+Production file selection is configured in `.github/workflows/prepare-production.yml`; exclusions use `.deployignore`. This plugin has no frontend build (`npm run build:prod` is a no-op).
+
 ## Changelog
 
 See [CHANGELOG.md](CHANGELOG.md) for detailed version history.

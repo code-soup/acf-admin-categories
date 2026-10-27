@@ -1,0 +1,8 @@
+{
+	"name": "codesoup-acf-admin-categories",
+	"private": true,
+	"description": "No-op npm manifest for wp-plugin-production-deploy (PHP-only plugin).",
+	"scripts": {
+		"build:prod": "node -e \"console.log('No frontend build for this plugin.');\""
+	}
+}
