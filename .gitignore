@@ -20,7 +20,9 @@ Thumbs.db
 .settings
 .tmproj
 .vscode
-.cursor
+.cursor/*
+!.cursor/skills/
+!.cursor/skills/**
 *.esproj
 ._*
 .Spotlight-V100
@@ -52,7 +54,6 @@ node_modules
 _test-src
 _local
 _remote
-.cursor
 
 # Logs
 logs
