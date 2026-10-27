@@ -109,7 +109,7 @@ typings/
 
 # Yarn Integrity file
 .yarn-integrity
-package-lock.json
+# package-lock.json is committed for wp-plugin-production-deploy (npm ci in CI)
 
 # dotenv environment variables file
 .env
